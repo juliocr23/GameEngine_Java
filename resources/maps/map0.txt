@@ -1,0 +1,16 @@
+# Map file for tile-based game
+# (Lines that start with '#' are comments)
+# The tiles are:
+#   (Space) Empty tile
+#   A..Z    Tiles A through Z
+#   a..z    power ups
+#   0..9    players
+#   symbols Enemies
+
+
+                                                   LMMMMMMMMMMMMMN
+                                                  O               O
+                          O                      O                 O
+           LMMN         O   O     LMMN          O                   O                          O         O   O
+0              ABBBBBBC       O                O                     O                O  O  O
+ABBBBBBBBBC    DEEEEEEF         ABBBBBBBBBBBBBC                       ABBBBBBBBBBBBBC            ABBBBBBBBBBBBBBBBBBBBC

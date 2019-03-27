@@ -1,0 +1,20 @@
+# Map file for tile-based game
+# (Lines that start with '#' are comments)
+# The tiles are:
+#   (Space) Empty tile
+#   A..Z    Tiles A through Z
+#   o       coin
+#   *       rocket drop item
+#   1       Bad Guy 1 (alien blue)
+#   2       Bad Guy 2 (alien green)
+#   3       Bad Guy 3 (Boss)
+#   4       Bad Guy 4 (blue fly)
+#   5       Bad Guy 5 (green fly)
+
+
+
+
+
+
+
+ABBBBBBBBBC  B  DEEEEEEF         ABBBBBBBBBBBBBC                          ABBBBBBBBBBBBBC           ABBBBBBBBBBBBBBBBB
