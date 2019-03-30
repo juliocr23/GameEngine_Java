@@ -103,42 +103,15 @@ public class World {
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
-      //  System.out.println("Hello World!");
-        //Get player's row and col
-        int row = getPlayerRow();
-        int col = getPlayerCol();
-
-        System.out.println("r:" + row + " " + "c:" + col);
-
-        //TODO: When it goes off the screen collision doesn't work!
-        if(moveRight) {
-
-            if(!isRightCollision(row,col))
-                    player.moveRight();
-        }
-
-       else if(moveLeft){
-            if(!isLeftCollision(row,col))
-                player.moveLeft();
-        }
-
-       else if(moveUp){
-            if(!isTopCollision(row,col))
-                player.moveUp();
-        }
-
-       else if(moveDown)
-            if(!isBottomCollision(row,col))
-                player.moveDown();
-        
+        updatePlayer();
 
         int startR =0;
         int startC =0;
 
         //Is drawing the whole matrix.
         //TODO: Only draw the portion that needs to be display.
-        for(row = startR; row<elements.length; ++row) {
-            for(col = startC; col<elements[row].length; ++col) {
+        for(int row = startR; row<elements.length; ++row) {
+            for(int col = startC; col<elements[row].length; ++col) {
 
                 if (!isEmpty(row,col)) {
 
@@ -152,17 +125,47 @@ public class World {
         }
     }
 
-    private void updatePlayer(int row, int col) {
+    private void updatePlayer() {
 
 
-        int newRow = getNewRow(row,col);
-        int newCol = getNewCol(row,col);
+        //Get player's row and col
+        int row = getPlayerRow();
+        int col = getPlayerCol();
 
-        //TODO: Check that is not the
-        if (isValid(newRow, newCol) && elements[newRow][newCol] == null ) {
-            elements[newRow][newCol] = elements[row][col];
-            elements[row][col] = null;
+        if(isValid(row,col) && elements[row][col] != player) {
+            System.out.println("Can't get player row,col");
+            return;
         }
+
+        if(moveRight) {
+
+            if(!isRightCollision(row,col))
+                player.moveRight();
+        }
+
+        if(moveLeft){
+            if(!isLeftCollision(row,col))
+                player.moveLeft();
+        }
+
+        if(moveUp){
+            if(!isTopCollision(row,col))
+                player.moveUp();
+        }
+
+        if(moveDown)
+            if(!isBottomCollision(row,col))
+                player.moveDown();
+
+        var newRow = getPlayerRow();
+        var newCol = getPlayerCol();
+
+        if(isValid(newRow,newCol) && isEmpty(newRow,newCol)) {
+                elements[newRow][newCol] = elements[row][col];
+                elements[row][col] = null;
+        }
+
+        printElements();
     }
 
     private void updateMap(int row, int col){
@@ -436,7 +439,7 @@ public class World {
     }
 
     private boolean isPlayer(int row, int col) {
-        return isPlayer(elements[row][col].getId());
+        return isValid(row,col) && !isEmpty(row,col) && isPlayer(elements[row][col].getId());
     }
 
     private boolean isPowerUp(char letter) {
@@ -497,8 +500,8 @@ public class World {
     public int getNewRow(int row, int col){
 
         Point d = elements[row][col].distance();
-        float totalY =d.y+hOffset(row,col);
-        return  (int)totalY/elementHeightAvg;
+        float totalY = d.y + hOffset(row,col);
+        return (int)totalY/elementHeightAvg;
     }
 
     public boolean isValid(int row, int col) {
