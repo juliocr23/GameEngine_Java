@@ -3,8 +3,10 @@ package map;
 import animation.MovingImage;
 import display.Display;
 import others.Point;
+import test.Game;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.Scanner;
  * Uppercase letter: Tiles
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
+ *
+ * //NOTE: COllision to the right is not working! check update method.
  */
 
 public class World {
@@ -35,6 +39,11 @@ public class World {
     private static int mapWidth;
     private static int elementWidthAvg;
     private static int elementHeightAvg;
+
+    private boolean moveLeft;
+    private boolean moveRight;
+    private boolean moveUp;
+    private boolean moveDown;
 
 
     /**
@@ -74,45 +83,95 @@ public class World {
         System.out.println("element width: " +  elementWidthAvg);
     }
 
+    //MARK:INPUTS
+    //--------------------------------------------------------------------------------------------------------------------------//
+    public void processInput(){
+
+       moveLeft  = Game.keyboard.keyDown(KeyEvent.VK_LEFT);
+       moveRight = Game.keyboard.keyDown(KeyEvent.VK_RIGHT);
+       moveUp    = Game.keyboard.keyDown(KeyEvent.VK_UP);
+       moveDown  = Game.keyboard.keyDown(KeyEvent.VK_DOWN);
+
+       player.movements[0] = moveLeft;
+       player.movements[1] = moveRight;
+       player.movements[2] = moveDown;
+       player.movements[3] = moveUp;
+
+    }
+
     //MARK: Updates
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
-        printElements();
+      //  System.out.println("Hello World!");
+        //Get player's row and col
+        int row = getPlayerRow();
+        int col = getPlayerCol();
+
+        System.out.println("r:" + row + " " + "c:" + col);
+
+        //TODO: When it goes off the screen collision doesn't work!
+        if(moveRight) {
+
+            if(!isRightCollision(row,col))
+                    player.moveRight();
+        }
+
+       else if(moveLeft){
+            if(!isLeftCollision(row,col))
+                player.moveLeft();
+        }
+
+       else if(moveUp){
+            if(!isTopCollision(row,col))
+                player.moveUp();
+        }
+
+       else if(moveDown)
+            if(!isBottomCollision(row,col))
+                player.moveDown();
+        
+
         int startR =0;
         int startC =0;
 
-        for(int row  =startR; row<elements.length; ++row) {
-            for(int col = startC; col<elements[row].length; ++col) {
+        //Is drawing the whole matrix.
+        //TODO: Only draw the portion that needs to be display.
+        for(row = startR; row<elements.length; ++row) {
+            for(col = startC; col<elements[row].length; ++col) {
 
                 if (!isEmpty(row,col)) {
 
+                    //Check
                     elements[row][col].update();
-                    updateMapOffset(row,col);
 
-                    int newRow = getNewRow(row,col);
-                    int newCol = getNewCol(row,col);
-
-                    //TODO: BUG-> it goes under tile
-                    if(isPlayer(row,col) || isEnemy(row,col)) {
-                        if (isValid(newRow, newCol) && elements[newRow][newCol] == null ) {
-                            elements[newRow][newCol] = elements[row][col];
-                            elements[row][col] = null;
-                        }
-                    }
+                    //TODO: There is an issue with the map when updating it.
+                 //   updateMap(row,col);
                 }
             }
         }
     }
 
-    private void updateMapOffset(int row, int col){
+    private void updatePlayer(int row, int col) {
 
-        int c = getPlayerCol();
-        int r = getPlayerRow();
 
-        if (elements[row][col] != player && isValid(r,c)) {
+        int newRow = getNewRow(row,col);
+        int newCol = getNewCol(row,col);
 
-            if(player.isRightBoundary()) {
+        //TODO: Check that is not the
+        if (isValid(newRow, newCol) && elements[newRow][newCol] == null ) {
+            elements[newRow][newCol] = elements[row][col];
+            elements[row][col] = null;
+        }
+    }
+
+    private void updateMap(int row, int col){
+
+        //Check that row, col is not player's coordinate
+        //To move maps objects.
+        if (!isPlayer(row, col)) {
+
+            if(player.isRightBoundary()) { //Check that player is on constraint and
               if(!moveLeft(row,col)) player.stopMoving = true;
               else player.stopMoving = false;
             }
@@ -124,6 +183,71 @@ public class World {
         }
     }
 
+    //MARK: Collision
+    //--------------------------------------------------------------------------------------------------------------------------//
+   //NOTE: It doesn't work when going above a tile. -> *_
+    public boolean isRightCollision(int row, int col) {
+
+        var isRightCollision = exist(row,col+1) && isOverLaps(row,col+1);
+
+        var isTopRightCollision = exist(row-1,col+1) && isOverLaps(row-1,col+1);
+
+        var isBottomRightCollision = exist(row+1,col+1) && isOverLaps(row+1,col+1);
+
+        return isRightCollision || isTopRightCollision || isBottomRightCollision;
+    }
+
+
+    public boolean isLeftCollision(int row, int col) {
+
+        var isLeftCollision       = exist(row,col-1) && isOverLaps(row,col-1);
+        var isLeftTopCollision    = exist(row-1,col-1) && isOverLaps(row-1,col-1);
+        var isLefBottomCollision  = exist(row+1,col-1) && isOverLaps(row+1,col-1);
+
+        return isLeftCollision || isLeftTopCollision || isLefBottomCollision;
+    }
+
+    public boolean isTopCollision(int row, int col) {
+
+        var isTopCollision      = exist(row-1,col) && isOverLaps(row-1,col);
+        var isTopLeftCollision  = exist(row-1,col+1) && isOverLaps(row-1,col+1);
+        var isTopRightCollision = exist(row-1,col-1) && isOverLaps(row-1,col-1);
+
+        return  isTopCollision || isTopLeftCollision || isTopRightCollision;
+    }
+
+    public boolean isBottomCollision(int row, int col) {
+
+        var isBottomCollision  = exist(row+1,col) && isOverLaps(row+1,col);
+        var isBottomLeftCollision  = exist(row+1,col+1) && isOverLaps(row+1,col+1);
+        var isBottomRightCollision = exist(row+1,col-1) && isOverLaps(row+1,col-1);
+
+        return  isBottomCollision || isBottomLeftCollision || isBottomRightCollision;
+    }
+
+    private boolean isOverLaps(int row, int col){
+        var result = player.overlaps(elements[row][col]);
+        return  result;
+    }
+
+    //MARK: Type Alia for elements[row][col]
+    public float y(int row, int col){
+       return  elements[row][col].getY();
+    }
+
+    public float x(int row, int col){
+        return elements[row][col].getX();
+    }
+
+    public float h(int row,int col){
+        return elements[row][col].getH();
+    }
+
+    public float w(int row, int col){
+        return elements[row][col].getW();
+    }
+
+
     private boolean moveLeft(int row,int col){
 
         int c = getPlayerCol();
@@ -133,7 +257,6 @@ public class World {
             elements[row][col].coordinate.x -= player.getVxi();
             return true;
         }
-
         else if(player.isMovingLeft()) {
             player.leftBoundary = Display.width / 2 + player.w;
             return true;
@@ -386,6 +509,10 @@ public class World {
         return elements[row][col] == null;
     }
 
+    public  boolean exist(int row, int col) {
+        return isValid(row,col) && !isEmpty(row,col);
+    }
+
     public boolean mapOriginal(){
 
         for(int row = 0; row <elements.length; row++) {
@@ -399,14 +526,14 @@ public class World {
         return true;
     }
 
-    //TODO: Ojos
     public int getPlayerRow(){
 
-        float yOffset = 0;
-        if(player.h > elementWidthAvg)
-            yOffset = (int)player.h-elementWidthAvg;
+        //Player's height could be > elementHeightAvg
+        float hOffset = 0;
+        if(player.h > elementHeightAvg)
+            hOffset = (int)player.h-elementHeightAvg;
 
-        return  Math.round(player.distance.y/elementHeightAvg);
+        return  Math.round((player.distance.y+hOffset)/elementHeightAvg);
     }
 
     public int getPlayerCol(){
@@ -416,7 +543,7 @@ public class World {
             wOffset = (int)player.w-elementWidthAvg;
 
 
-       return Math.round(player.distance.x/elementWidthAvg);
+       return Math.round((player.distance.x+wOffset)/elementWidthAvg);
     }
 
     //TODO: Testing methods

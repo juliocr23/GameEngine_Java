@@ -33,17 +33,15 @@ public class GameState extends State  {
     }
 
     @Override
+    public void processInput() {
+        world.processInput();
+    }
+
+    @Override
     public void update() {
        world.update();
     }
 
-    @Override
-    public void processInput() {
-        player.moveDown(Game.keyboard.keyDown(KeyEvent.VK_DOWN));
-        player.moveUp(Game.keyboard.keyDown(KeyEvent.VK_UP));
-        player.moveLeft(Game.keyboard.keyDown(KeyEvent.VK_LEFT));
-        player.moveRight(Game.keyboard.keyDown(KeyEvent.VK_RIGHT));
-    }
 
     @Override
     public void draw(Graphics graphics) {

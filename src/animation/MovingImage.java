@@ -13,7 +13,7 @@ import java.util.ArrayList;
 //TODO: Match keyboard to actions: Consider using a hashMap? or a class structure.
 //TODO: Moving image should know which animation is the idle or it should mandate that
 //TODO: the path for the idle animation should come first, and then the one for walking
-
+//TODO: Rectangle width for collision is Fixed!
 
 public class MovingImage extends Rectangle {
 
@@ -31,7 +31,7 @@ public class MovingImage extends Rectangle {
     private int lastHorizontalMove = 1;
     private int lastVerticalMove = 3;
 
-    protected boolean[] movements = new boolean[4]; //Track sprite movements
+    public boolean[] movements = new boolean[4]; //Track sprite movements
     private char id; //Sprite id
 
     public float leftBoundary   =0;
@@ -66,7 +66,11 @@ public class MovingImage extends Rectangle {
                 e.printStackTrace();
             }
         }
+
         update();
+
+        w = (image.getWidth() * scale);
+        h = (image.getHeight() * scale);
     }
 
     public MovingImage(String filePath, char id) {
@@ -126,9 +130,6 @@ public class MovingImage extends Rectangle {
         } else {
             image = animations.get(current).getImage();
         }
-
-        w = image.getWidth() * scale;
-        h = image.getHeight() * scale;
     }
 
     public void updateVelocity(){
@@ -142,7 +143,7 @@ public class MovingImage extends Rectangle {
                 initialVelocity.y += acceleration.y;
         } else {
             initialVelocity.x = 0;
-            initialVelocity.y = 0;
+            //initialVelocity.y = 0; TODO:
             current = 0;
         }
     }
@@ -150,62 +151,51 @@ public class MovingImage extends Rectangle {
     //MARK: Rendering
     //------------------------------------------------------------------------------------------------------------------//
     public void draw(Graphics g){
-            g.drawImage(image,(int)getX(),(int) getY(), (int)w, (int)h,null);
+
+        var imgWidth =  (int) (image.getWidth() * scale);
+        var imgHeight = (int) (image.getHeight() * scale);
+        g.drawImage(image,(int)getX(),(int) getY(), imgWidth, imgHeight,null);
+
+        g.setColor(Color.red);
+        g.drawRect((int)getX(),(int) getY(), (int)w, (int)h);
     }
 
     //MARK: Movements
     //-----------------------------------------------------------------------------------------------------------------//
-    public void moveLeft(boolean isLeft){
+    public void moveLeft(){
+        moveLeft(initialVelocity.x);
+        float offset = distance.x - initialVelocity.x;
 
-        if(isLeft) {
-            if(!isLeftBoundary()) moveLeft(initialVelocity.x);
+        if(!stopMoving && offset>=0)  distance.x -= initialVelocity.x;
+        lastHorizontalMove = 0;
 
-            float offset = distance.x - initialVelocity.x;
-
-            if(!stopMoving && offset>=0)  distance.x -= initialVelocity.x;
-            lastHorizontalMove = 0;
-        }
-
-        movements[0] = isLeft;
     }
 
-    public void moveRight(boolean isRight){
+    public void moveRight(){
 
-        if(isRight) {
-            if(!isRightBoundary()) moveRightBy(initialVelocity.x);
-
-            if(!stopMoving)  distance.x += initialVelocity.x;
-            lastHorizontalMove = 1;
-        }
-
-        movements[1] = isRight;
+        moveRightBy(initialVelocity.x);
+        if(!stopMoving)  distance.x += initialVelocity.x;
+        lastHorizontalMove = 1;
     }
 
-    public void moveDown(boolean isDown){
+    public void moveDown(){
 
-        if(isDown) {
-            if(!isDownBoundary())  moveDown(initialVelocity.y);
+        moveDown(initialVelocity.y);
+        System.out.println(initialVelocity.y);
+        if(!stopMoving)  distance.y += initialVelocity.y;
 
-            if(!stopMoving)  distance.y += initialVelocity.y;
-
-            lastVerticalMove = 2;
-        }
-
-       movements[2] = isDown;
+        lastVerticalMove = 2;
     }
 
-    public void moveUp(boolean isUp){
+    public void moveUp(){
 
-        if(isUp) {
-            if(!isUpBoundary()) moveUp(initialVelocity.y);
+        moveUp(initialVelocity.y);
 
-            if(!stopMoving) distance.y -= initialVelocity.y;
+        //If object is not moving, then is at boundary
+        //therefore we must record distance move.
+        if(!stopMoving) distance.y -= initialVelocity.y;
 
-            lastVerticalMove = 3;
-
-        }
-
-       movements[3] = isUp;
+        lastVerticalMove = 3;
     }
 
     public boolean isMoving(){
@@ -282,6 +272,8 @@ public class MovingImage extends Rectangle {
     public float getAy(){
         return acceleration.y;
     }
+
+    //TODO: Not used.
 
     public boolean isLeftBoundary(){
         float xOffset = coordinate.x - initialVelocity.x;
