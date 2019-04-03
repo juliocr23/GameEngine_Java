@@ -8,9 +8,9 @@
 #   symbols Enemies
 
 
-      L                                            LMMMMMMMMMMMMMN
+                                                   LMMMMMMMMMMMMMN
                                                   O               O
-                          O                      O                 O
+     L                    O                      O                 O
            LMMN         O   O     LMMN          O                   O                          O         O   O
 0              ABBBBBBC       O                O                     O                O  O  O
 ABBB BBBBBC    DEEEEEEF         ABBBBBBBBBBBBBC                       ABBBBBBBBBBBBBC            ABBBBBBBBBBBBBBBBBBBBC

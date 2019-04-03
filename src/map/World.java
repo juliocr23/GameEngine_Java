@@ -19,7 +19,18 @@ import java.util.Scanner;
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
  *
- * //NOTE: COllision to the right is not working! check update method.
+ * //NOTE: collision to the right is not working! check update method.
+ *
+ * //object position on the matrix would depend on the width and height of the object
+ * //If the width cover 3 spots then player should on those three spots.
+ * //And when element is moving shift all of the instances to the left or right
+ * //depending where it moves. This will allow elements to be any side.
+ *
+ * //Therefore for collision: it would make sense to check the outer instances of the element(DNK how to do that)
+ *                            But for now: check everyPlayer instances. So, do the update on the
+ *                            nested loop and check for collision there.
+ *
+ *                            or use the height and width of the element to determine the row and col it should check.
  */
 
 public class World {
@@ -164,7 +175,11 @@ public class World {
                 elements[newRow][newCol] = elements[row][col];
                 elements[row][col] = null;
         }
-       // printElements();
+
+        printElements();
+
+//        System.out.println("h: " + player.height);
+//        System.out.println("w: " + player.width);
     }
 
     //MARK: Collision
@@ -206,64 +221,76 @@ public class World {
     }
 
     public boolean isLeftSide(int row, int col) {
-        boolean conner1 = player.contains(leftTopConner(row,col));
-        boolean conner2 = player.contains(leftBottomConner(row,col));
+
+        float xOffset = player.getVxi() + player.getAx();
+        boolean conner1 = player.contains(leftTopConner(row,col, -xOffset, 0));
+        boolean conner2 = player.contains(leftBottomConner(row,col, -xOffset, 0));
 
         return conner1 || conner2;
     }
 
     public boolean isRightSide(int row, int col) {
-        boolean conner1 = player.contains(rightTopConner(row,col));
-        boolean conner2 = player.contains(rightBottomConner(row,col));
+
+        float xOffset = player.getVxi() + player.getAx();
+        boolean conner1 = player.contains(rightTopConner(row,col, xOffset, 0));
+        boolean conner2 = player.contains(rightBottomConner(row,col, xOffset, 0));
 
         return conner1 || conner2;
     }
 
     public boolean isTopSide(int row, int col) {
-        boolean conner1 = player.contains(leftTopConner(row,col));
-        boolean conner2 = player.contains(rightTopConner(row,col));
+
+        float yOffset = player.getVyi() +  player.getAy();
+
+        boolean conner1 = player.contains(leftTopConner(row,col, 0, -yOffset));
+        boolean conner2 = player.contains(rightTopConner(row,col, 0, -yOffset));
 
         return conner1 || conner2;
     }
 
     public boolean isBottomSide(int row, int col) {
-        boolean conner1 = player.contains(rightBottomConner(row,col));
-        boolean conner2 = player.contains(leftBottomConner(row,col));
+
+        float yOffset = player.getVyi() +  player.getAy();
+
+        boolean conner1 = player.contains(rightBottomConner(row,col, 0, yOffset));
+        boolean conner2 = player.contains(leftBottomConner(row,col, 0,yOffset));
 
         return conner1 || conner2;
     }
 
 
-    public Point leftTopConner(int row, int col) {
-        return  new Point(elements[row][col].x,elements[row][col].y);
+    public Point leftTopConner(int row, int col, float xOffset, float yOffset) {
+
+        int x =(int) (elements[row][col].x + xOffset);
+        int y =(int) (elements[row][col].y + yOffset);
+        return  new Point(x,y);
     }
 
-    public Point rightTopConner(int row, int col) {
+    public Point rightTopConner(int row, int col, float xOffset, float yOffset) {
 
         Point conner = new Point();
-        conner.x = elements[row][col].x + elements[row][col].width;
-        conner.y = elements[row][col].y;
+        conner.x = (int) (elements[row][col].x + elements[row][col].width + xOffset);
+        conner.y = (int) (elements[row][col].y + yOffset);
 
         return conner;
     }
 
-    public Point leftBottomConner(int row, int col) {
+    public Point leftBottomConner(int row, int col, float xOffset, float yOffset) {
         Point conner = new Point();
-        conner.x = elements[row][col].x;
-        conner.y = elements[row][col].y + elements[row][col].height;
+        conner.x = (int) (elements[row][col].x + xOffset);
+        conner.y = (int) (elements[row][col].y + elements[row][col].height + yOffset);
 
         return conner;
     }
 
-    public Point rightBottomConner(int row, int col) {
+    public Point rightBottomConner(int row, int col, float xOffset, float yOffset) {
 
         Point conner = new Point();
-        conner.x = elements[row][col].x + elements[row][col].width;
-        conner.y = elements[row][col].y + elements[row][col].height;
+        conner.x = (int)(elements[row][col].x + elements[row][col].width + xOffset);
+        conner.y = (int) (elements[row][col].y + elements[row][col].height + yOffset);
 
         return conner;
     }
-
 
 
     private boolean isOverLaps(int row, int col){

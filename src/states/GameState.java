@@ -48,7 +48,7 @@ public class GameState extends State  {
         String filePath[] = {"resources/player/idle/Idle", "resources/player/run/Run"};
         int duration[] = {3,3};
         player = new MovingImage(filePath,duration,'0');
-        player.setScale(0.2f);
+        player.setScale(0.22f, 0.13f);
     }
 
     private void getTiles(Hashtable<Character,MovingImage> map){

@@ -20,7 +20,8 @@ public class MovingImage extends Rectangle {
     public Point finalVelocity = new Point(5,5);
     public Point acceleration  = new Point(1,1);
 
-    private float scale = 1;
+    private float wScale = 1;
+    private float hScale = 1;
     private int current = 0;      //The index of the animation being shown
     private BufferedImage image;  //The image being display
     public  String imageFormat = "png";
@@ -67,16 +68,16 @@ public class MovingImage extends Rectangle {
 
         update();
 
-        width  = (int) (image.getWidth() * scale);
-        height = (int) (image.getHeight() * scale);
+        width  = (int) (image.getWidth() * wScale);
+        height = (int) (image.getHeight() * hScale);
     }
 
     public MovingImage(String filePath, char id) {
         try {
             this.id = id;
             image = ImageIO.read(new File(filePath + "." + imageFormat));
-            width  = (int)(scale*image.getWidth());
-            height = (int)scale*image.getHeight();
+            width  = (int)(wScale *image.getWidth());
+            height = (int) hScale *image.getHeight();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -91,7 +92,8 @@ public class MovingImage extends Rectangle {
         finalVelocity   = new Point(other.finalVelocity);
         acceleration    = new Point(other.acceleration);
 
-        scale   = other.scale;
+        wScale = other.wScale;
+        hScale = other.hScale;
         current = other.current;
         image   = other.image;
         width      = other.width;
@@ -150,8 +152,8 @@ public class MovingImage extends Rectangle {
     //------------------------------------------------------------------------------------------------------------------//
     public void draw(Graphics g){
 
-        var imgWidth =  (int) (image.getWidth() * scale);
-        var imgHeight = (int) (image.getHeight() * scale);
+        var imgWidth =  (int) (image.getWidth() * wScale);
+        var imgHeight = (int) (image.getHeight() * hScale);
         g.drawImage(image,(int)getX(),(int) getY(), imgWidth, imgHeight,null);
 
         g.setColor(Color.red);
@@ -243,10 +245,12 @@ public class MovingImage extends Rectangle {
         return newSprite;
     }
 
-    public void setScale(float scale) {
-        this.scale = scale;
-        width  *= scale;
-        height *= scale;
+    public void setScale(float wScale, float hScale) {
+        this.wScale = wScale;
+        this.hScale = hScale;
+
+        width  *= wScale;
+        height *= hScale;
     }
 
     public float getVxi(){
