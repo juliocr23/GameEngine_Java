@@ -1,7 +1,5 @@
 package animation;
 
-import others.Rectangle;
-import others.Point;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -20,7 +18,7 @@ public class MovingImage extends Rectangle {
     private ArrayList<Animation> animations = new ArrayList<>();
     private Point initialVelocity  = new Point(2,2);
     public Point finalVelocity = new Point(5,5);
-    public Point acceleration  = new Point(0.5f,0.5f);
+    public Point acceleration  = new Point(1,1);
 
     private float scale = 1;
     private int current = 0;      //The index of the animation being shown
@@ -53,7 +51,7 @@ public class MovingImage extends Rectangle {
 
     public MovingImage(String[] filePaths, int[] duration, char id) {
 
-        this.coordinate.setLocation(coordinate); //Set location of the sprite
+        //TODO: setLocation(0,0);       //Set location of the sprite
         this.id = id;
         this.filePath =  filePaths;
 
@@ -69,16 +67,16 @@ public class MovingImage extends Rectangle {
 
         update();
 
-        w = (image.getWidth() * scale);
-        h = (image.getHeight() * scale);
+        width  = (int) (image.getWidth() * scale);
+        height = (int) (image.getHeight() * scale);
     }
 
     public MovingImage(String filePath, char id) {
         try {
             this.id = id;
             image = ImageIO.read(new File(filePath + "." + imageFormat));
-            w = scale*image.getWidth();
-            h = scale*image.getHeight();
+            width  = (int)(scale*image.getWidth());
+            height = (int)scale*image.getHeight();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -96,8 +94,8 @@ public class MovingImage extends Rectangle {
         scale   = other.scale;
         current = other.current;
         image   = other.image;
-        w       = other.w;
-        h       = other.h;
+        width      = other.width;
+        height     = other.height;
 
         lastVerticalMove = other.lastVerticalMove;
         lastHorizontalMove = other.lastHorizontalMove;
@@ -157,13 +155,15 @@ public class MovingImage extends Rectangle {
         g.drawImage(image,(int)getX(),(int) getY(), imgWidth, imgHeight,null);
 
         g.setColor(Color.red);
-        g.drawRect((int)getX(),(int) getY(), (int)w, (int)h);
+        g.drawRect((int)getX(),(int) getY(), width, height);
     }
 
     //MARK: Movements
     //-----------------------------------------------------------------------------------------------------------------//
     public void moveLeft(){
-        moveLeft(initialVelocity.x);
+
+        x -=  initialVelocity.x;
+
         float offset = distance.x - initialVelocity.x;
 
         if(!stopMoving && offset>=0)  distance.x -= initialVelocity.x;
@@ -173,14 +173,14 @@ public class MovingImage extends Rectangle {
 
     public void moveRight(){
 
-        moveRightBy(initialVelocity.x);
+         x += initialVelocity.x;
         if(!stopMoving)  distance.x += initialVelocity.x;
         lastHorizontalMove = 1;
     }
 
     public void moveDown(){
 
-        moveDown(initialVelocity.y);
+        y += initialVelocity.y;
         System.out.println(initialVelocity.y);
         if(!stopMoving)  distance.y += initialVelocity.y;
 
@@ -189,7 +189,7 @@ public class MovingImage extends Rectangle {
 
     public void moveUp(){
 
-        moveUp(initialVelocity.y);
+       y -= initialVelocity.y;
 
         //If object is not moving, then is at boundary
         //therefore we must record distance move.
@@ -245,8 +245,8 @@ public class MovingImage extends Rectangle {
 
     public void setScale(float scale) {
         this.scale = scale;
-        w *= scale;
-        h *= scale;
+        width  *= scale;
+        height *= scale;
     }
 
     public float getVxi(){
@@ -271,27 +271,6 @@ public class MovingImage extends Rectangle {
 
     public float getAy(){
         return acceleration.y;
-    }
-
-    //TODO: Not used.
-
-    public boolean isLeftBoundary(){
-        float xOffset = coordinate.x - initialVelocity.x;
-        return leftBoundary >= xOffset;
-    }
-    public boolean isRightBoundary(){
-        float xOffset = coordinate.x + initialVelocity.x;
-        return rightBoundary <= xOffset;
-    }
-
-    public boolean isDownBoundary(){
-        float yOffset = coordinate.y + initialVelocity.y;
-        return yOffset-1 >= downBoundary;
-    }
-
-    public boolean isUpBoundary(){
-        float yOffset = coordinate.y - initialVelocity.y;
-        return upBoundary>= yOffset;
     }
 
     public Point distance(){

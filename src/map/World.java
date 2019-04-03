@@ -2,7 +2,6 @@ package map;
 
 import animation.MovingImage;
 import display.Display;
-import others.Point;
 import test.Game;
 
 import java.awt.*;
@@ -103,6 +102,7 @@ public class World {
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
+        //TODO: Add offset to collision where player don't overlap. is set 1 pixel away from object.
         updatePlayer();
 
         int startR =0;
@@ -127,7 +127,6 @@ public class World {
 
     private void updatePlayer() {
 
-
         //Get player's row and col
         int row = getPlayerRow();
         int col = getPlayerCol();
@@ -140,7 +139,7 @@ public class World {
         if(moveRight) {
 
             if(!isRightCollision(row,col))
-                player.moveRight();
+               player.moveRight();
         }
 
         if(moveLeft){
@@ -153,9 +152,10 @@ public class World {
                 player.moveUp();
         }
 
-        if(moveDown)
-            if(!isBottomCollision(row,col))
+        if(moveDown) {
+            if (!isBottomCollision(row, col))
                 player.moveDown();
+        }
 
         var newRow = getPlayerRow();
         var newCol = getPlayerCol();
@@ -164,90 +164,139 @@ public class World {
                 elements[newRow][newCol] = elements[row][col];
                 elements[row][col] = null;
         }
-
-        printElements();
-    }
-
-    private void updateMap(int row, int col){
-
-        //Check that row, col is not player's coordinate
-        //To move maps objects.
-        if (!isPlayer(row, col)) {
-
-            if(player.isRightBoundary()) { //Check that player is on constraint and
-              if(!moveLeft(row,col)) player.stopMoving = true;
-              else player.stopMoving = false;
-            }
-
-            if(player.isMovingLeft()) {
-              if(!moveRight(row,col)) player.stopMoving = true;
-              else player.stopMoving = false;
-            }
-        }
+       // printElements();
     }
 
     //MARK: Collision
     //--------------------------------------------------------------------------------------------------------------------------//
-   //NOTE: It doesn't work when going above a tile. -> *_
     public boolean isRightCollision(int row, int col) {
 
-        var isRightCollision = exist(row,col+1) && isOverLaps(row,col+1);
-
-        var isTopRightCollision = exist(row-1,col+1) && isOverLaps(row-1,col+1);
-
-        var isBottomRightCollision = exist(row+1,col+1) && isOverLaps(row+1,col+1);
+        var isRightCollision = exist(row,col+1) && isLeftSide(row,col+1);
+        var isTopRightCollision = exist(row-1,col+1) && isLeftSide(row-1,col+1);
+        var isBottomRightCollision = exist(row+1,col+1) && isLeftSide(row+1,col+1);
 
         return isRightCollision || isTopRightCollision || isBottomRightCollision;
     }
 
-
     public boolean isLeftCollision(int row, int col) {
 
-        var isLeftCollision       = exist(row,col-1) && isOverLaps(row,col-1);
-        var isLeftTopCollision    = exist(row-1,col-1) && isOverLaps(row-1,col-1);
-        var isLefBottomCollision  = exist(row+1,col-1) && isOverLaps(row+1,col-1);
+        var isLeftCollision       = exist(row,col-1) && isRightSide(row,col-1);
+        var isLeftTopCollision    = exist(row-1,col-1) && isRightSide(row-1,col-1);
+        var isLefBottomCollision  = exist(row+1,col-1) && isRightSide(row+1,col-1);
 
         return isLeftCollision || isLeftTopCollision || isLefBottomCollision;
     }
 
     public boolean isTopCollision(int row, int col) {
 
-        var isTopCollision      = exist(row-1,col) && isOverLaps(row-1,col);
-        var isTopLeftCollision  = exist(row-1,col+1) && isOverLaps(row-1,col+1);
-        var isTopRightCollision = exist(row-1,col-1) && isOverLaps(row-1,col-1);
+        var isTopCollision      = exist(row-1,col) && isBottomSide(row-1,col);
+        var isTopLeftCollision  = exist(row-1,col+1) && isBottomSide(row-1,col+1);
+        var isTopRightCollision = exist(row-1,col-1) && isBottomSide(row-1,col-1);
 
-        return  isTopCollision || isTopLeftCollision || isTopRightCollision;
+
+        return  isTopCollision || isTopLeftCollision || isTopRightCollision ;
     }
 
     public boolean isBottomCollision(int row, int col) {
-
-        var isBottomCollision  = exist(row+1,col) && isOverLaps(row+1,col);
-        var isBottomLeftCollision  = exist(row+1,col+1) && isOverLaps(row+1,col+1);
-        var isBottomRightCollision = exist(row+1,col-1) && isOverLaps(row+1,col-1);
+        var isBottomCollision  = exist(row+1,col) && isTopSide(row+1,col);
+        var isBottomLeftCollision  = exist(row+1,col+1) && isTopSide(row+1,col+1);
+        var isBottomRightCollision = exist(row+1,col-1) && isTopSide(row+1,col-1);
 
         return  isBottomCollision || isBottomLeftCollision || isBottomRightCollision;
     }
 
+    public boolean isLeftSide(int row, int col) {
+        boolean conner1 = player.contains(leftTopConner(row,col));
+        boolean conner2 = player.contains(leftBottomConner(row,col));
+
+        return conner1 || conner2;
+    }
+
+    public boolean isRightSide(int row, int col) {
+        boolean conner1 = player.contains(rightTopConner(row,col));
+        boolean conner2 = player.contains(rightBottomConner(row,col));
+
+        return conner1 || conner2;
+    }
+
+    public boolean isTopSide(int row, int col) {
+        boolean conner1 = player.contains(leftTopConner(row,col));
+        boolean conner2 = player.contains(rightTopConner(row,col));
+
+        return conner1 || conner2;
+    }
+
+    public boolean isBottomSide(int row, int col) {
+        boolean conner1 = player.contains(rightBottomConner(row,col));
+        boolean conner2 = player.contains(leftBottomConner(row,col));
+
+        return conner1 || conner2;
+    }
+
+
+    public Point leftTopConner(int row, int col) {
+        return  new Point(elements[row][col].x,elements[row][col].y);
+    }
+
+    public Point rightTopConner(int row, int col) {
+
+        Point conner = new Point();
+        conner.x = elements[row][col].x + elements[row][col].width;
+        conner.y = elements[row][col].y;
+
+        return conner;
+    }
+
+    public Point leftBottomConner(int row, int col) {
+        Point conner = new Point();
+        conner.x = elements[row][col].x;
+        conner.y = elements[row][col].y + elements[row][col].height;
+
+        return conner;
+    }
+
+    public Point rightBottomConner(int row, int col) {
+
+        Point conner = new Point();
+        conner.x = elements[row][col].x + elements[row][col].width;
+        conner.y = elements[row][col].y + elements[row][col].height;
+
+        return conner;
+    }
+
+
+
     private boolean isOverLaps(int row, int col){
-        var result = player.overlaps(elements[row][col]);
+
+
+        var result = player.intersects(elements[row][col]);
         return  result;
     }
 
     //MARK: Type Alia for elements[row][col]
     public float y(int row, int col){
-       return  elements[row][col].getY();
+       return  elements[row][col].y;
     }
 
     public float x(int row, int col){
-        return elements[row][col].getX();
+        return elements[row][col].x;
     }
 
     public float h(int row,int col){
-        return elements[row][col].getH();
+        return elements[row][col].height;
     }
 
     public float w(int row, int col){
-        return elements[row][col].getW();
+        return elements[row][col].width;
+    }
+
+
+    private float getPlayerXOffset(){
+       return player.getVxi() == 0 ? player.getAx() : player.getVxi();
+    }
+
+    private float getPlayerYOffset(){
+        return player.getVyi() == 0 ? player.getAy() : player.getVyi();
     }
 
 
@@ -257,11 +306,11 @@ public class World {
         int r = getPlayerRow();
 
         if(player.isMovingRight() &&  isEmpty(r,c+1) ) {
-            elements[row][col].coordinate.x -= player.getVxi();
+            elements[row][col].x -= player.getVxi();
             return true;
         }
         else if(player.isMovingLeft()) {
-            player.leftBoundary = Display.width / 2 + player.w;
+            player.leftBoundary = Display.width / 2 + player.width;
             return true;
         } else {
             //TODO: When moving up and down player position for r is not changing.
@@ -282,7 +331,7 @@ public class World {
             return true;
         }
         else if(isEmpty(r,c-1)) {
-            elements[row][col].coordinate.x += player.getVxi();
+            elements[row][col].x += player.getVxi();
             return true;
         }
         return false;
@@ -383,8 +432,8 @@ public class World {
                     }
 
                     else if (isElement(obj)) elements[row][col] = sprite.getCopy();
-                    width  += sprite.w;
-                    height += sprite.h;
+                    width  += sprite.width;
+                    height += sprite.height;
                 }else  {
                     System.out.println("Error " + obj + " Doesn't exist in Hashtable");
                 }
@@ -405,14 +454,14 @@ public class World {
             for(int col = 0; col<elements[row].length; col++){
 
                 if (!isEmpty(row,col)) {
-                    elements[row][col].coordinate.x = getXFor(row,col);
-                    elements[row][col].distance.x   =  getXFor(row,col);
+                    elements[row][col].x = (int) getXFor(row,col);
+                    elements[row][col].distance.x   = (int) getXFor(row,col);
 
-                    elements[row][col].distance.y   = getYFor(row,col);
-                    elements[row][col].coordinate.y = getYFor(row,col);
+                    elements[row][col].distance.y   = (int) getYFor(row,col);
+                    elements[row][col].y = (int)getYFor(row,col);
 
                     if(isPlayer(row,col)) {
-                        float playerWidth = elements[row][col].w;
+                        float playerWidth = elements[row][col].width;
                         elements[row][col].rightBoundary = (Display.width/2-playerWidth);
                         elements[row][col].leftBoundary  = 0;
                         elements[row][col].upBoundary    = 0;
@@ -476,16 +525,16 @@ public class World {
 
     public float hOffset(int row, int col){
         int hOffset = 0;
-        if(elements[row][col].h > elementHeightAvg)
-            hOffset = (int)elements[row][col].h-elementHeightAvg;
+        if(elements[row][col].height > elementHeightAvg)
+            hOffset = (int)elements[row][col].height-elementHeightAvg;
 
         return hOffset;
     }
 
     public float wOffset(int row, int col) {
         int wOffset = 0;
-        if(elements[row][col].w > elementWidthAvg)
-            wOffset = (int)elements[row][col].w-elementWidthAvg;
+        if(elements[row][col].width > elementWidthAvg)
+            wOffset = (int)elements[row][col].width-elementWidthAvg;
 
         return wOffset;
     }
@@ -533,8 +582,8 @@ public class World {
 
         //Player's height could be > elementHeightAvg
         float hOffset = 0;
-        if(player.h > elementHeightAvg)
-            hOffset = (int)player.h-elementHeightAvg;
+        if(player.height > elementHeightAvg)
+            hOffset = player.height-elementHeightAvg;
 
         return  Math.round((player.distance.y+hOffset)/elementHeightAvg);
     }
@@ -542,8 +591,8 @@ public class World {
     public int getPlayerCol(){
 
         float wOffset = 0;
-        if(player.w > elementWidthAvg)
-            wOffset = (int)player.w-elementWidthAvg;
+        if(player.width > elementWidthAvg)
+            wOffset = (int)player.width-elementWidthAvg;
 
 
        return Math.round((player.distance.x+wOffset)/elementWidthAvg);
@@ -567,3 +616,6 @@ public class World {
         }
     }
 }
+
+
+

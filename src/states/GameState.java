@@ -2,11 +2,7 @@ package states;
 
 import animation.MovingImage;
 import map.World;
-import others.Point;
-import test.Game;
-
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.Hashtable;
 
 
@@ -20,8 +16,8 @@ public class GameState extends State  {
         createPlayer();
 
         try {
-            System.out.println("player h " + player.h);
-            System.out.println("player w " + player.w);
+            System.out.println("player h " + player.height);
+            System.out.println("player w " + player.width);
             Hashtable<Character,MovingImage> items = new Hashtable<>();
             getTiles(items);
             items.put('0',player);
