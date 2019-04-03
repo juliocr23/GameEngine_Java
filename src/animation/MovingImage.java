@@ -164,8 +164,7 @@ public class MovingImage extends Rectangle {
     //-----------------------------------------------------------------------------------------------------------------//
     public void moveLeft(){
 
-        x -=  initialVelocity.x;
-
+        moveLeftBy(initialVelocity.x);
         float offset = distance.x - initialVelocity.x;
 
         if(!stopMoving && offset>=0)  distance.x -= initialVelocity.x;
@@ -174,15 +173,14 @@ public class MovingImage extends Rectangle {
     }
 
     public void moveRight(){
-
-         x += initialVelocity.x;
+         moveRightBy(initialVelocity.x);
         if(!stopMoving)  distance.x += initialVelocity.x;
         lastHorizontalMove = 1;
     }
 
     public void moveDown(){
 
-        y += initialVelocity.y;
+        moveDownBy(initialVelocity.y);
         System.out.println(initialVelocity.y);
         if(!stopMoving)  distance.y += initialVelocity.y;
 
@@ -191,13 +189,29 @@ public class MovingImage extends Rectangle {
 
     public void moveUp(){
 
-       y -= initialVelocity.y;
+       moveUpBy(initialVelocity.y);
 
         //If object is not moving, then is at boundary
         //therefore we must record distance move.
         if(!stopMoving) distance.y -= initialVelocity.y;
 
         lastVerticalMove = 3;
+    }
+
+    public void moveLeftBy(float dx){
+        x -= dx;
+    }
+
+    public void moveRightBy(float dx) {
+        x += dx;
+    }
+
+    public void moveUpBy(float dy){
+        y -= dy;
+    }
+
+    public void moveDownBy(float dy) {
+        y += dy;
     }
 
     public boolean isMoving(){

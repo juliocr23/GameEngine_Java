@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Scanner;
 
+import static java.lang.StrictMath.abs;
+
 /**
  * digit keys: players
  * Uppercase letter: Tiles
@@ -31,6 +33,13 @@ import java.util.Scanner;
  *                            nested loop and check for collision there.
  *
  *                            or use the height and width of the element to determine the row and col it should check.
+ *
+ *
+ *
+ *                            xOffset: How far the player is from colliding.
+ *                            Now: if player is colliding that means he is about to collide,
+ *                            Therefore-> add to  playerNewPosition  abs(player.coordinate - element.coordinate)
+ *
  */
 
 public class World {
@@ -147,25 +156,41 @@ public class World {
             return;
         }
 
+        Pair result;
         if(moveRight) {
 
-            if(!isRightCollision(row,col))
+            result = isRightCollision(row,col);
+            if(result.isEmpty())
                player.moveRight();
+            else
+               player.x = abs(elements[result.row][result.col].x - elements[result.row][result.col].width - 1);
         }
 
         if(moveLeft){
-            if(!isLeftCollision(row,col))
+
+            result = isLeftCollision(row,col);
+            if(result.isEmpty())
                 player.moveLeft();
+            else
+                player.x =  abs(elements[result.row][result.col].x + elements[result.row][result.col].width + 1);
         }
 
         if(moveUp){
-            if(!isTopCollision(row,col))
+
+            result = isTopCollision(row,col);
+            if(result.isEmpty())
                 player.moveUp();
+            else
+                player.y =  abs(elements[result.row][result.col].y + elements[result.row][result.col].height + 1);
         }
 
         if(moveDown) {
-            if (!isBottomCollision(row, col))
+
+            result = isBottomCollision(row,col);
+            if (result.isEmpty())
                 player.moveDown();
+            else
+                player.y = abs(elements[result.row][result.col].y - elements[result.row][result.col].height - 1);
         }
 
         var newRow = getPlayerRow();
@@ -177,47 +202,70 @@ public class World {
         }
 
         printElements();
-
-//        System.out.println("h: " + player.height);
-//        System.out.println("w: " + player.width);
     }
 
     //MARK: Collision
     //--------------------------------------------------------------------------------------------------------------------------//
-    public boolean isRightCollision(int row, int col) {
+    public Pair isRightCollision(int row, int col) {
 
         var isRightCollision = exist(row,col+1) && isLeftSide(row,col+1);
         var isTopRightCollision = exist(row-1,col+1) && isLeftSide(row-1,col+1);
         var isBottomRightCollision = exist(row+1,col+1) && isLeftSide(row+1,col+1);
 
-        return isRightCollision || isTopRightCollision || isBottomRightCollision;
+        if(isRightCollision) return new Pair(row,col+1);
+
+        else if(isTopRightCollision) return new Pair(row-1,col+1);
+
+        else if(isBottomRightCollision) return new Pair(row+1,col+1);
+
+        else return new Pair();
     }
 
-    public boolean isLeftCollision(int row, int col) {
+    public Pair isLeftCollision(int row, int col) {
 
         var isLeftCollision       = exist(row,col-1) && isRightSide(row,col-1);
         var isLeftTopCollision    = exist(row-1,col-1) && isRightSide(row-1,col-1);
         var isLefBottomCollision  = exist(row+1,col-1) && isRightSide(row+1,col-1);
 
-        return isLeftCollision || isLeftTopCollision || isLefBottomCollision;
+        if(isLeftCollision)   return new Pair(row,col-1);
+
+        else if(isLeftTopCollision) return new Pair(row-1,col-1);
+
+        else if(isLefBottomCollision) return new Pair(row+1,col-1);
+
+        else return  new Pair();
     }
 
-    public boolean isTopCollision(int row, int col) {
+    public Pair isTopCollision(int row, int col) {
 
         var isTopCollision      = exist(row-1,col) && isBottomSide(row-1,col);
         var isTopLeftCollision  = exist(row-1,col+1) && isBottomSide(row-1,col+1);
         var isTopRightCollision = exist(row-1,col-1) && isBottomSide(row-1,col-1);
 
+        if(isTopCollision) return  new Pair(row-1,col);
 
-        return  isTopCollision || isTopLeftCollision || isTopRightCollision ;
+        else if(isTopLeftCollision) return new Pair(row-1,col+1);
+
+        else if(isTopRightCollision) return new Pair(row-1,col-1);
+
+        else return new Pair();
+
+
     }
 
-    public boolean isBottomCollision(int row, int col) {
+    public Pair isBottomCollision(int row, int col) {
+
         var isBottomCollision  = exist(row+1,col) && isTopSide(row+1,col);
         var isBottomLeftCollision  = exist(row+1,col+1) && isTopSide(row+1,col+1);
         var isBottomRightCollision = exist(row+1,col-1) && isTopSide(row+1,col-1);
 
-        return  isBottomCollision || isBottomLeftCollision || isBottomRightCollision;
+        if(isBottomCollision) return  new Pair(row+1,col);
+
+        else if(isBottomLeftCollision) return new Pair(row+1,col+1);
+
+        else if(isBottomRightCollision) return new Pair(row+1,col-1);
+
+        else return new Pair();
     }
 
     public boolean isLeftSide(int row, int col) {
@@ -641,6 +689,30 @@ public class World {
             }
             System.out.println();
         }
+    }
+}
+
+class Pair{
+    int row;
+    int col;
+
+    Pair(){
+        row = -1;
+        col = -1;
+    }
+
+    Pair(int r, int c) {
+        row = r;
+        col = c;
+    }
+
+   public boolean isEmpty(){
+        return row == -1 && col == -1;
+    }
+
+    @Override
+    public String toString() {
+       return "r: " + row + " c: " + col + "\n";
     }
 }
 
