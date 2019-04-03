@@ -21,25 +21,10 @@ import static java.lang.StrictMath.abs;
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
  *
- * //NOTE: collision to the right is not working! check update method.
- *
  * //object position on the matrix would depend on the width and height of the object
  * //If the width cover 3 spots then player should on those three spots.
  * //And when element is moving shift all of the instances to the left or right
  * //depending where it moves. This will allow elements to be any side.
- *
- * //Therefore for collision: it would make sense to check the outer instances of the element(DNK how to do that)
- *                            But for now: check everyPlayer instances. So, do the update on the
- *                            nested loop and check for collision there.
- *
- *                            or use the height and width of the element to determine the row and col it should check.
- *
- *
- *
- *                            xOffset: How far the player is from colliding.
- *                            Now: if player is colliding that means he is about to collide,
- *                            Therefore-> add to  playerNewPosition  abs(player.coordinate - element.coordinate)
- *
  */
 
 public class World {
@@ -341,40 +326,8 @@ public class World {
     }
 
 
-    private boolean isOverLaps(int row, int col){
-
-
-        var result = player.intersects(elements[row][col]);
-        return  result;
-    }
 
     //MARK: Type Alia for elements[row][col]
-    public float y(int row, int col){
-       return  elements[row][col].y;
-    }
-
-    public float x(int row, int col){
-        return elements[row][col].x;
-    }
-
-    public float h(int row,int col){
-        return elements[row][col].height;
-    }
-
-    public float w(int row, int col){
-        return elements[row][col].width;
-    }
-
-
-    private float getPlayerXOffset(){
-       return player.getVxi() == 0 ? player.getAx() : player.getVxi();
-    }
-
-    private float getPlayerYOffset(){
-        return player.getVyi() == 0 ? player.getAy() : player.getVyi();
-    }
-
-
     private boolean moveLeft(int row,int col){
 
         int c = getPlayerCol();
