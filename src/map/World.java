@@ -21,10 +21,7 @@ import static java.lang.StrictMath.abs;
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
  *
- * //object position on the matrix would depend on the width and height of the object
- * //If the width cover 3 spots then player should on those three spots.
- * //And when element is moving shift all of the instances to the left or right
- * //depending where it moves. This will allow elements to be any side.
+ * ->use the height and width of the element to determine the row and col it should check.
  */
 
 public class World {
@@ -48,7 +45,6 @@ public class World {
     private boolean moveRight;
     private boolean moveUp;
     private boolean moveDown;
-
 
     /**
      * Constructor
@@ -147,8 +143,10 @@ public class World {
             result = isRightCollision(row,col);
             if(result.isEmpty())
                player.moveRight();
-            else
-               player.x = abs(elements[result.row][result.col].x - elements[result.row][result.col].width - 1);
+            else {
+                player.x = abs(elements[result.row][result.col].x - elements[result.row][result.col].width - 1);
+                System.out.println("r:" + result.row + " c: " + result.col);
+            }
         }
 
         if(moveLeft){
@@ -186,11 +184,16 @@ public class World {
                 elements[row][col] = null;
         }
 
-        printElements();
+          printElements();
+//        System.out.println(elementHeightAvg);
+//        System.out.println(player.height);
     }
 
     //MARK: Collision
     //--------------------------------------------------------------------------------------------------------------------------//
+
+
+    //&*
     public Pair isRightCollision(int row, int col) {
 
         var isRightCollision = exist(row,col+1) && isLeftSide(row,col+1);
@@ -206,6 +209,7 @@ public class World {
         else return new Pair();
     }
 
+    //*&
     public Pair isLeftCollision(int row, int col) {
 
         var isLeftCollision       = exist(row,col-1) && isRightSide(row,col-1);
@@ -221,45 +225,73 @@ public class World {
         else return  new Pair();
     }
 
+    //  *
+    //  &
     public Pair isTopCollision(int row, int col) {
 
-        var isTopCollision      = exist(row-1,col) && isBottomSide(row-1,col);
-        var isTopLeftCollision  = exist(row-1,col+1) && isBottomSide(row-1,col+1);
-        var isTopRightCollision = exist(row-1,col-1) && isBottomSide(row-1,col-1);
+        int elementsToCheck = 1;
+        if(player.height > elementHeightAvg)
+             elementsToCheck +=  Math.round((player.height-elementHeightAvg + 0.0)/elementHeightAvg);
 
-        if(isTopCollision) return  new Pair(row-1,col);
+        boolean isTopCollision,
+                isTopLeftCollision,
+                isTopRightCollision;
 
-        else if(isTopLeftCollision) return new Pair(row-1,col+1);
+        for(int i = 1; i<=elementsToCheck; ++i) {
 
-        else if(isTopRightCollision) return new Pair(row-1,col-1);
+            isTopCollision = exist(row - i, col) && isBottomSide(row - i, col);
+            isTopLeftCollision = exist(row - i, col + 1) && isBottomSide(row - i, col + 1);
+            isTopRightCollision = exist(row - i, col - 1) && isBottomSide(row - i, col - 1);
 
-        else return new Pair();
+            if (isTopCollision) return new Pair(row - i, col);
 
+            else if (isTopLeftCollision) return new Pair(row - i, col + 1);
 
+            else if (isTopRightCollision) return new Pair(row - i, col - 1);
+        }
+
+       return new Pair();
     }
 
+    //  &
+    //  *
     public Pair isBottomCollision(int row, int col) {
 
-        var isBottomCollision  = exist(row+1,col) && isTopSide(row+1,col);
-        var isBottomLeftCollision  = exist(row+1,col+1) && isTopSide(row+1,col+1);
-        var isBottomRightCollision = exist(row+1,col-1) && isTopSide(row+1,col-1);
+        int elementsToCheck = 1;
+        if(player.height > elementHeightAvg)
+            elementsToCheck +=  Math.round((player.height-elementHeightAvg + 0.0)/elementHeightAvg);
 
-        if(isBottomCollision) return  new Pair(row+1,col);
+        boolean isBottomCollision,
+                isBottomLeftCollision,
+                isBottomRightCollision;
 
-        else if(isBottomLeftCollision) return new Pair(row+1,col+1);
+//        for(int i = 1; i<=elementsToCheck; ++i) {
 
-        else if(isBottomRightCollision) return new Pair(row+1,col-1);
+             isBottomCollision  = exist(row + 1,col) && isTopSide(row + 1,col);
+             isBottomLeftCollision  = exist(row + 1,col+1) && isTopSide(row + 1,col+1);
+             isBottomRightCollision = exist(row + 1,col-1) && isTopSide(row + 1,col-1);
 
-        else return new Pair();
+//            System.out.println(row + i);
+//
+//            System.out.println(isBottomCollision);
+
+             if(isBottomCollision) return  new Pair(row + 1,col);
+
+             else if(isBottomLeftCollision) return new Pair(row + 1,col+1);
+
+             else if(isBottomRightCollision) return new Pair(row + 1,col-1);
+//        }
+
+        return new Pair();
     }
 
     public boolean isLeftSide(int row, int col) {
 
         float xOffset = player.getVxi() + player.getAx();
-        boolean conner1 = player.contains(leftTopConner(row,col, -xOffset, 0));
-        boolean conner2 = player.contains(leftBottomConner(row,col, -xOffset, 0));
+        boolean pConner1 = player.contains(leftTopConner(row,col, -xOffset, 0));
+        boolean pConner2 = player.contains(leftBottomConner(row,col, -xOffset, 0));
 
-        return conner1 || conner2;
+        return pConner1 || pConner2;
     }
 
     public boolean isRightSide(int row, int col) {
@@ -275,20 +307,34 @@ public class World {
 
         float yOffset = player.getVyi() +  player.getAy();
 
-        boolean conner1 = player.contains(leftTopConner(row,col, 0, -yOffset));
-        boolean conner2 = player.contains(rightTopConner(row,col, 0, -yOffset));
+        boolean pConner1 = player.contains(leftTopConner(row,col, 0, -yOffset));
+        boolean pConner2 = player.contains(rightTopConner(row,col, 0, -yOffset));
 
-        return conner1 || conner2;
+        //Player could be bigger than object.
+//        int pRow = getPlayerRow();
+//        int pCol = getPlayerCol();
+//        boolean eConner1 = elements[row][col].contains(leftBottomConner(pRow,pCol,0,yOffset));
+//        boolean eConner2 =  elements[row][col].contains(rightBottomConner(pRow,pCol,0,yOffset));
+
+
+        return pConner1 || pConner2;
     }
 
     public boolean isBottomSide(int row, int col) {
 
         float yOffset = player.getVyi() +  player.getAy();
 
-        boolean conner1 = player.contains(rightBottomConner(row,col, 0, yOffset));
-        boolean conner2 = player.contains(leftBottomConner(row,col, 0,yOffset));
+        //Object could be bigger than player.
+        boolean pConner1 = player.contains(rightBottomConner(row,col, 0, yOffset));
+        boolean pConner2 = player.contains(leftBottomConner(row,col, 0,yOffset));
 
-        return conner1 || conner2;
+        //Player could be bigger than object.
+        int pRow = getPlayerRow();
+        int pCol = getPlayerCol();
+        boolean eConner1 = elements[row][col].contains(leftTopConner(pRow,pCol,0,-yOffset));
+        boolean eConner2 =  elements[row][col].contains(rightTopConner(pRow,pCol,0,-yOffset));
+
+        return pConner1 || pConner2 || eConner1 || eConner2;
     }
 
 
