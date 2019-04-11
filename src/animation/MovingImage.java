@@ -17,7 +17,7 @@ public class MovingImage extends Rectangle {
 
     private ArrayList<Animation> animations = new ArrayList<>();
     private Point initialVelocity  = new Point(2,2);
-    public Point finalVelocity = new Point(5,5);
+    public Point finalVelocity = new Point(5,7);
     public Point acceleration  = new Point(1,1);
 
     private float wScale = 1;
@@ -37,10 +37,9 @@ public class MovingImage extends Rectangle {
     public float rightBoundary  =0;
     public float downBoundary   =0;
     public float upBoundary     =0;
-
     public Point distance = new Point();
-
     public boolean stopMoving = false;
+
 
 
     /**
@@ -197,6 +196,7 @@ public class MovingImage extends Rectangle {
 
         lastVerticalMove = 3;
     }
+
 
     public void moveLeftBy(float dx){
         x -= dx;
