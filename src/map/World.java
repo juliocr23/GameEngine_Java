@@ -50,7 +50,7 @@ public class World {
     private boolean isGravity = true;
 
     private int jumpOffset = 0;
-    private int jumpHeight = 150;
+    private int jumpHeight = 155;
     private boolean startJump = false;
 
     /**
@@ -116,9 +116,6 @@ public class World {
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
-        //TODO: Add offset to collision where player don't overlap. is set 1 pixel away from object.
-       // updatePlayer();
-
         int startR =0;
         int startC =0;
 
@@ -128,6 +125,7 @@ public class World {
         Pair result[] = new  Pair[4];
         Pair temp1;
 
+        //Update elements.
         for(int row = startR; row<elements.length; ++row) {
             for(int col = startC; col<elements[row].length; ++col) {
 
@@ -136,13 +134,13 @@ public class World {
                     if(!isPlayer(row,col)) {
 
                          if(isGravity) {
-                            temp1 = isBottomCollision(row, col);
-                            if (!temp1.isEmpty()) result[3] = temp1;
+                           temp1  = isBottomCollision(row, col);
+                           if (!temp1.isEmpty()) result[3] = temp1;
                          }
 
                         if(moveRight) {
                             temp1 = isRightCollision(row,col);
-                            if(!temp1.isEmpty()) result[0] = temp1;
+                           if(!temp1.isEmpty()) result[0] = temp1;
                         }
 
                         if(moveLeft ) {
@@ -155,8 +153,6 @@ public class World {
                             if(!temp1.isEmpty()) result[2] = temp1;
                         }
                     }
-
-                    //Check
                     elements[row][col].update();
 
                     //TODO: There is an issue with the map when updating it.
@@ -166,82 +162,81 @@ public class World {
         }
 
         updatePlayer(result);
-
-        //Update player afterwards. Use Above loop to check for collision.
+        updateTiles();
     }
 
-    private void updatePlayer(Pair result[]) {
+    private void updatePlayer(Pair collision[]) {
 
-        //Get player's row and col
-//        int row = getPlayerRow();
-//        int col = getPlayerCol();
-
-//        if(isValid(row,col) && elements[row][col] != player) {
-//            System.out.println("Can't get player row,col");
-//            return;
-//        }
-
-      //  Pair result;
         int r, c;
+
+        final int right = 0,
+                  left  = 1,
+                  up    = 2,
+                  down  = 3;
+
         if(moveRight) {
 
-            if(result[0] == null) {
+            boolean boundary = (player.getX()+player.getXOffset()) >= (Display.width/2 - player.width);
+
+            if(collision[right] == null && !boundary) {
                 player.moveRight();
             }
-            else {
-                r = result[0].row;
-                c = result[0].col;
+            else if(collision[right] != null){
+                r = collision[right].row;
+                c = collision[right].col;
                 player.x = abs(elements[r][c].x-player.width-1);
             }
         }
 
         if(moveLeft){
 
-            if(result[1] == null )
+            boolean boundary = (player.getX()-player.getXOffset()) < 0;
+
+            //If there is not collision and is not at boundary it can move
+            //to the left.
+            if(collision[left] == null && !boundary)
                 player.moveLeft();
+            else if(boundary)
+                player.x = 0;
             else {
-                r = result[1].row;
-                c = result[1].col;
+                r = collision[left].row;
+                c = collision[left].col;
                 player.x = abs(elements[r][c].x + elements[r][c].width +1);
             }
         }
 
-        if(result[3] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
+        if(collision[down] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
             startJump = true;
 
         if(startJump){
 
-            if(jumpOffset <= jumpHeight) {
+            if(jumpOffset <= jumpHeight && collision[up] == null) {
 
-                if (result[2] == null) {
-                    player.moveUp();
-                    jumpOffset += player.getVyi() + player.getAy();
-                } else {
-                    r = result[2].row;
-                    c = result[2].col;
-                    player.y = abs(elements[r][c].y + elements[r][c].height + 1);
-                }
-              isGravity = false;
-            }else {
+                player.moveUp();
+                jumpOffset += player.getVyi() + player.getAy();
+                isGravity = false;
+            }
+            else {
                 isGravity = true;
                 startJump = false;
+                moveUp = false;
             }
         }
 
         if(isGravity) {
 
-            if (result[3] == null ) {
+            if (collision[down] == null ) {
                 player.moveDown();
             }
             else {
-                r = result[3].row;
-                c = result[3].col;
+                r = collision[down].row;
+                c = collision[down].col;
                 player.y = abs(elements[r][c].y - player.height -1);
                 jumpOffset = 0;
                 moveUp = false;
             }
         }
-        
+
 //
 //        var newRow = getPlayerRow();
 //        var newCol = getPlayerCol();
@@ -251,6 +246,29 @@ public class World {
 //                elements[row][col] = null;
 //        }
     }
+
+
+    public void updateTiles(){
+
+        boolean boundary = (player.getX()+player.getXOffset()) >= (Display.width/2 - player.width);
+        if(!boundary)
+            return;
+
+        for(int row = 0; row<elements.length; ++row) {
+            for (int col = 0; col < elements[row].length; ++col) {
+                if (!isEmpty(row,col) && !isPlayer(row,col)) {
+                    if(moveRight) {
+                        elements[row][col].x -= player.getXOffset();
+                    }
+
+                    if(moveLeft) {
+                        elements[row][col].x += player.getXOffset();
+                    }
+                }
+            }
+        }
+    }
+
 
     //MARK: Collision
     //--------------------------------------------------------------------------------------------------------------------------//

@@ -267,6 +267,22 @@ public class MovingImage extends Rectangle {
         height *= hScale;
     }
 
+    public  float getXOffset(){
+
+        float tempVx  =  initialVelocity.x + acceleration.x <= finalVelocity.x ?
+                         initialVelocity.x + acceleration.x : initialVelocity.x;
+
+        return tempVx;
+    }
+
+    public float getYOffset(){
+
+        float tempVy =   initialVelocity.y + acceleration.y <= finalVelocity.y ?
+                         initialVelocity.y + acceleration.y : initialVelocity.y;
+
+        return tempVy;
+    }
+
     public float getVxi(){
         return initialVelocity.x;
     }
