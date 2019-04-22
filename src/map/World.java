@@ -56,6 +56,11 @@ public class World {
 
     private boolean tileMoved = false;
 
+    private final int right = 0,
+                      left  = 1,
+                      up    = 2,
+                      down  = 3;
+
     /**
      * Constructor
      * @param maps The filepath for the maps. The map should have the same name but
@@ -134,22 +139,22 @@ public class World {
 
                          if(isGravity) {
                            temp1  = isBottomCollision(row, col);
-                           if (!temp1.isEmpty()) result[3] = temp1;
+                           if (!temp1.isEmpty()) result[down] = temp1;
                          }
 
                         if(moveRight) {
                             temp1 = isRightCollision(row,col);
-                           if(!temp1.isEmpty()) result[0] = temp1;
+                           if(!temp1.isEmpty()) result[right] = temp1;
                         }
 
                         if(moveLeft ) {
                             temp1 = isLeftCollision(row,col);
-                            if(!temp1.isEmpty()) result[1] = temp1;
+                            if(!temp1.isEmpty()) result[left] = temp1;
                         }
 
                         if(moveUp) {
                             temp1 = isTopCollision(row,col);
-                            if(!temp1.isEmpty()) result[2] = temp1;
+                            if(!temp1.isEmpty()) result[up] = temp1;
                         }
                     }
                     elements[row][col].update();
@@ -161,23 +166,17 @@ public class World {
         }
 
         updatePlayer(result);
-        updateTiles();
+        updateTiles(result);
     }
 
     private void updatePlayer(Pair collision[]) {
 
         int r, c;
 
-        final int right = 0,
-                  left  = 1,
-                  up    = 2,
-                  down  = 3;
-
         if(moveRight) {
 
-            boolean boundary = (player.getX() + player.getXOffset()) >= (Display.width/2 - player.width);
-
-            if(collision[right] == null && !boundary) {
+            player.setFacingPosition(right);
+            if(collision[right] == null) {
                 player.moveRight();
             }
             else if(collision[right] != null){ //There is collision to the right
@@ -237,7 +236,7 @@ public class World {
         }
     }
 
-    public void updateTiles(){
+    public void updateTiles(Pair collision[]){
 
         //Map do not move when there is no boundary.
         boolean boundary = (player.getX()+player.getXOffset()) >= (Display.width/2 - player.width);
@@ -245,22 +244,50 @@ public class World {
             return;
 
         tileMoved = true;
-        if(moveRight) {
+
+        if(moveRight && collision[right] == null)
             offset.x -= player.getXOffset();
-          //  player.distance.x += player.getXOffset();
+
+        if(moveLeft) {
+            if(offset.x < 0) {
+                offset.x += player.getXOffset();
+            }
+            else {
+                offset.x = 0;
+                tileMoved = false;
+                //player.distance.x = (int)player.getX();
+            }
         }
 
-//        if(moveLeft) {
-//            if(offset.x > 0) {
-//                offset.x += player.getXOffset();
-//             //   player.distance.x += player.getXOffset();
-//            }
-//            else {
-//                offset.x = 0;
-//                tileMoved = false;
-//                //player.distance.x = (int)player.getX();
-//            }
-//        }
+        System.out.println(offset.x);
+    }
+
+
+    //MARK: Rendering
+    //--------------------------------------------------------------------------------------------------------------------------//
+    public void draw(Graphics g) {
+
+        int r = getStartingRow();
+        int c = getStartingCol();
+
+        boolean boundary = (player.getX() + player.getXOffset()) >= (Display.width/2 - player.width);
+        if(boundary) {
+            int x =  (Display.width/2 - player.width);
+            player.draw(g, x,player.y);
+        }
+        else {
+            player.draw(g);
+        }
+
+        for(int i = r;  getRow(i) < Display.height; i++){
+            for(int j = c; getCol(j) < Display.width; j++){
+                if (!isEmpty(i,j)) {
+
+                    if(!isPlayer(i,j))
+                        elements[i][j].draw(g,offset);
+                }
+            }
+        }
     }
 
 
@@ -483,27 +510,6 @@ public class World {
         return false;
     }
 
-
-
-    //MARK: Rendering
-    //--------------------------------------------------------------------------------------------------------------------------//
-    public void draw(Graphics g) {
-
-        int r = getStartingRow();
-        int c = getStartingCol();
-
-        player.draw(g);
-        for(int i = r;  getRow(i) < Display.height; i++){
-            for(int j = c; getCol(j) < Display.width; j++){
-                if (!isEmpty(i,j)) {
-
-                    if(!isPlayer(i,j))
-                        elements[i][j].draw(g,offset);
-                }
-            }
-        }
-
-    }
 
     //MARK: File Parsing
     //--------------------------------------------------------------------------------------------------------------------------//

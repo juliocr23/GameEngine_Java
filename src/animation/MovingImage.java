@@ -153,7 +153,18 @@ public class MovingImage extends Rectangle {
     //MARK: Rendering
     //------------------------------------------------------------------------------------------------------------------//
     public void draw(Graphics g){
+        paint(g,x,y);
+    }
 
+    public void draw(Graphics g, Point offset) {
+        paint(g, x + offset.x,y + offset.y);
+    }
+
+    public void draw(Graphics g, int x, int y) {
+       paint(g,x,y);
+    }
+
+    private void paint(Graphics g, int x, int y){
         var imgWidth =  (int) (image.getWidth() * wScale);
         var imgHeight = (int) (image.getHeight() * hScale);
         g.drawImage(image,x,y, imgWidth, imgHeight,null);
@@ -162,42 +173,31 @@ public class MovingImage extends Rectangle {
         g.drawRect(x,y, width, height);
     }
 
-    public void draw(Graphics g, Point offset) {
-        var imgWidth =  (int) (image.getWidth() * wScale);
-        var imgHeight = (int) (image.getHeight() * hScale);
-
-        g.drawImage(image,x + offset.x,y + offset.y, imgWidth, imgHeight,null);
-
-        g.setColor(Color.red);
-        g.drawRect(x,y, width, height);
-    }
-
 
     //MARK: Movements
     //-----------------------------------------------------------------------------------------------------------------//
+    public void moveRight(){
+        moveRightBy(initialVelocity.x);
+        lastHorizontalMove = 0;
+    }
+
     public void moveLeft(){
         moveLeftBy(initialVelocity.x);
-        lastHorizontalMove = 0;
+        lastHorizontalMove = 1;
 
     }
 
-    public void moveRight(){
-         moveRightBy(initialVelocity.x);
-        lastHorizontalMove = 1;
+    public void moveUp(){
+
+        moveUpBy(initialVelocity.y);
+        lastVerticalMove = 2;
     }
 
     public void moveDown(){
 
         moveDownBy(initialVelocity.y);
-        lastVerticalMove = 2;
-    }
-
-    public void moveUp(){
-
-       moveUpBy(initialVelocity.y);
         lastVerticalMove = 3;
     }
-
 
     public void moveLeftBy(float dx){
         x -= dx;
@@ -229,20 +229,24 @@ public class MovingImage extends Rectangle {
         return false;
     }
 
-    public boolean lastMoveLeft(){ return lastHorizontalMove == 0; }
     public boolean lastMoveRight(){
-        return lastHorizontalMove == 1;
+        return lastHorizontalMove == 0;
     }
+    public boolean lastMoveLeft(){ return lastHorizontalMove == 1; }
     public boolean lastMoveUp(){
-        return lastVerticalMove == 3;
+        return lastVerticalMove == 2;
     }
-    public boolean lastMoveDown(){ return lastVerticalMove  == 2; }
+    public boolean lastMoveDown(){ return lastVerticalMove  == 3; }
 
-    public boolean isMovingLeft(){ return movements[0]; }
-    public boolean isMovingRight(){ return movements[1]; }
-    public boolean isMovingDown(){ return movements[2]; }
-    public boolean isMovingUp(){ return movements[3]; }
+    public boolean isMovingRight(){ return movements[0]; }
+    public boolean isMovingLeft(){ return movements[1]; }
+    public boolean isMovingUp(){ return movements[2]; }
+    public boolean isMovingDown(){ return movements[3]; }
 
+
+    public void setFacingPosition(int position) {
+        lastHorizontalMove = position;
+    }
 
     //MARK: Getters and Setters
     //-----------------------------------------------------------------------------------------------------------------//
