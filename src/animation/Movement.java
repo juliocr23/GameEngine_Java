@@ -1,11 +1,9 @@
 package animation;
+public class Movement {
 
-public enum Movement {
+  public final static int  RIGHT = 0,
+                     LEFT = 1,
+                     UP = 2,
+                     DOWN = 3;
 
-    RIGHT(0),LEFT(1),UP(2),DOWN(3);
-
-    public final int index;
-    Movement(int index) {
-        this.index = index;
-    }
 }

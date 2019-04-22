@@ -27,8 +27,8 @@ public class MovingImage extends Rectangle {
     public  String imageFormat = "png";
     public String filePath[];
 
-    private int lastHorizontalMove = 1;
-    private int lastVerticalMove = 3;
+    private int lastHorizontalMove = Movement.RIGHT;
+    private int lastVerticalMove = Movement.DOWN;
 
     public boolean[] movements = new boolean[4]; //Track sprite movements
     private char id; //Sprite id
@@ -37,12 +37,6 @@ public class MovingImage extends Rectangle {
     public float rightBoundary  =0;
     public float downBoundary   =0;
     public float upBoundary     =0;
-   // public Point distance = new Point();
-    public boolean stopMoving = false;
-
-//    private int x;
-//    private int y;
-
 
 
     /**
@@ -178,45 +172,41 @@ public class MovingImage extends Rectangle {
     //-----------------------------------------------------------------------------------------------------------------//
     public void moveRight(){
         moveRightBy(initialVelocity.x);
-        lastHorizontalMove = 0;
+        lastHorizontalMove = Movement.RIGHT;
     }
 
     public void moveLeft(){
         moveLeftBy(initialVelocity.x);
-        lastHorizontalMove = 1;
+        lastHorizontalMove = Movement.LEFT;
 
     }
 
     public void moveUp(){
 
         moveUpBy(initialVelocity.y);
-        lastVerticalMove = 2;
+        lastVerticalMove = Movement.UP;
     }
 
     public void moveDown(){
 
         moveDownBy(initialVelocity.y);
-        lastVerticalMove = 3;
+        lastVerticalMove = Movement.DOWN;
     }
 
     public void moveLeftBy(float dx){
         x -= dx;
-//        distance.x -= dx;
     }
 
     public void moveRightBy(float dx) {
         x += dx;
-//        distance.x += dx;
     }
 
     public void moveUpBy(float dy){
         y -= dy;
-//        distance.y -= dy;
     }
 
     public void moveDownBy(float dy) {
         y += dy;
-//        distance.y += dy;
     }
 
     public boolean isMoving(){
@@ -230,13 +220,13 @@ public class MovingImage extends Rectangle {
     }
 
     public boolean lastMoveRight(){
-        return lastHorizontalMove == 0;
+        return lastHorizontalMove == Movement.RIGHT;
     }
-    public boolean lastMoveLeft(){ return lastHorizontalMove == 1; }
+    public boolean lastMoveLeft(){ return lastHorizontalMove == Movement.LEFT; }
     public boolean lastMoveUp(){
-        return lastVerticalMove == 2;
+        return lastVerticalMove == Movement.UP;
     }
-    public boolean lastMoveDown(){ return lastVerticalMove  == 3; }
+    public boolean lastMoveDown(){ return lastVerticalMove  == Movement.DOWN; }
 
     public boolean isMovingRight(){ return movements[0]; }
     public boolean isMovingLeft(){ return movements[1]; }

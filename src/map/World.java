@@ -1,5 +1,6 @@
 package map;
 
+import animation.Movement;
 import animation.MovingImage;
 import display.Display;
 import test.Game;
@@ -56,10 +57,7 @@ public class World {
 
     private boolean tileMoved = false;
 
-    private final int right = 0,
-                      left  = 1,
-                      up    = 2,
-                      down  = 3;
+    private Movement movement;
 
     /**
      * Constructor
@@ -139,22 +137,22 @@ public class World {
 
                          if(isGravity) {
                            temp1  = isBottomCollision(row, col);
-                           if (!temp1.isEmpty()) result[down] = temp1;
+                           if (!temp1.isEmpty()) result[Movement.DOWN] = temp1;
                          }
 
                         if(moveRight) {
                             temp1 = isRightCollision(row,col);
-                           if(!temp1.isEmpty()) result[right] = temp1;
+                           if(!temp1.isEmpty()) result[Movement.RIGHT] = temp1;
                         }
 
                         if(moveLeft ) {
                             temp1 = isLeftCollision(row,col);
-                            if(!temp1.isEmpty()) result[left] = temp1;
+                            if(!temp1.isEmpty()) result[Movement.LEFT] = temp1;
                         }
 
                         if(moveUp) {
                             temp1 = isTopCollision(row,col);
-                            if(!temp1.isEmpty()) result[up] = temp1;
+                            if(!temp1.isEmpty()) result[Movement.UP] = temp1;
                         }
                     }
                     elements[row][col].update();
@@ -173,42 +171,49 @@ public class World {
 
         int r, c;
 
-        if(moveRight) {
+        if(moveRight)
+            player.setFacingPosition(Movement.RIGHT);
+        else if(moveLeft)
+            player.setFacingPosition(Movement.LEFT);
 
-            player.setFacingPosition(right);
-            if(collision[right] == null) {
+        //Check if player is moving to the right
+        if(moveRight) {
+            if(collision[Movement.RIGHT] == null) { //If there is no collision to the right move
                 player.moveRight();
             }
-            else if(collision[right] != null){ //There is collision to the right
-                r = collision[right].row;
-                c = collision[right].col;
+            else if(collision[Movement.RIGHT] != null){ //Otherwise do not move pass element
+                r = collision[Movement.RIGHT].row;
+                c = collision[Movement.RIGHT].col;
                 player.x = abs(elements[r][c].x-player.width-1);
             }
         }
 
+
+        //Check if player is moving to the left
         if(moveLeft && !tileMoved){
 
+            //Check if player is going off the screen
             boolean boundary = (player.getX()-player.getXOffset()) < 0;
 
             //If there is not collision and is not at boundary it can move
             //to the left.
-            if(collision[left] == null && !boundary)
+            if(collision[Movement.LEFT] == null && !boundary)
                 player.moveLeft();
             else if(boundary)
                 player.x = 0;
             else {
-                r = collision[left].row;
-                c = collision[left].col;
+                r = collision[Movement.LEFT].row;
+                c = collision[Movement.LEFT].col;
                 player.x = abs(elements[r][c].x + elements[r][c].width +1);
             }
         }
 
-        if(collision[down] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
+        if(collision[Movement.DOWN] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
             startJump = true;
 
         if(startJump){
 
-            if(jumpOffset <= jumpHeight && collision[up] == null) {
+            if(jumpOffset <= jumpHeight && collision[Movement.UP] == null) {
 
                 player.moveUp();
                 jumpOffset += player.getVyi() + player.getAy();
@@ -222,13 +227,12 @@ public class World {
         }
 
         if(isGravity) {
-
-            if (collision[down] == null ) {
+            if (collision[Movement.DOWN] == null ) {
                 player.moveDown();
             }
             else {
-                r = collision[down].row;
-                c = collision[down].col;
+                r = collision[Movement.DOWN].row;
+                c = collision[Movement.DOWN].col;
                 player.y = abs(elements[r][c].y - player.height -1);
                 jumpOffset = 0;
                 moveUp = false;
@@ -245,7 +249,7 @@ public class World {
 
         tileMoved = true;
 
-        if(moveRight && collision[right] == null)
+        if(moveRight && collision[Movement.RIGHT] == null)
             offset.x -= player.getXOffset();
 
         if(moveLeft) {
@@ -255,7 +259,6 @@ public class World {
             else {
                 offset.x = 0;
                 tileMoved = false;
-                //player.distance.x = (int)player.getX();
             }
         }
 
