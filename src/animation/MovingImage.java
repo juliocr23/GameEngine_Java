@@ -37,8 +37,11 @@ public class MovingImage extends Rectangle {
     public float rightBoundary  =0;
     public float downBoundary   =0;
     public float upBoundary     =0;
-    public Point distance = new Point();
+   // public Point distance = new Point();
     public boolean stopMoving = false;
+
+//    private int x;
+//    private int y;
 
 
 
@@ -153,65 +156,67 @@ public class MovingImage extends Rectangle {
 
         var imgWidth =  (int) (image.getWidth() * wScale);
         var imgHeight = (int) (image.getHeight() * hScale);
-        g.drawImage(image,(int)getX(),(int) getY(), imgWidth, imgHeight,null);
+        g.drawImage(image,x,y, imgWidth, imgHeight,null);
 
         g.setColor(Color.red);
-        g.drawRect((int)getX(),(int) getY(), width, height);
+        g.drawRect(x,y, width, height);
     }
+
+    public void draw(Graphics g, Point offset) {
+        var imgWidth =  (int) (image.getWidth() * wScale);
+        var imgHeight = (int) (image.getHeight() * hScale);
+
+        g.drawImage(image,x + offset.x,y + offset.y, imgWidth, imgHeight,null);
+
+        g.setColor(Color.red);
+        g.drawRect(x,y, width, height);
+    }
+
 
     //MARK: Movements
     //-----------------------------------------------------------------------------------------------------------------//
     public void moveLeft(){
-
         moveLeftBy(initialVelocity.x);
-        float offset = distance.x - initialVelocity.x;
-
-        if(!stopMoving && offset>=0)  distance.x -= initialVelocity.x;
         lastHorizontalMove = 0;
 
     }
 
     public void moveRight(){
          moveRightBy(initialVelocity.x);
-        if(!stopMoving)  distance.x += initialVelocity.x;
         lastHorizontalMove = 1;
     }
 
     public void moveDown(){
 
         moveDownBy(initialVelocity.y);
-        System.out.println(initialVelocity.y);
-        if(!stopMoving)  distance.y += initialVelocity.y;
-
         lastVerticalMove = 2;
     }
 
     public void moveUp(){
 
        moveUpBy(initialVelocity.y);
-
-        //If object is not moving, then is at boundary
-        //therefore we must record distance move.
-        if(!stopMoving) distance.y -= initialVelocity.y;
-
         lastVerticalMove = 3;
     }
 
 
     public void moveLeftBy(float dx){
         x -= dx;
+//        distance.x -= dx;
     }
 
     public void moveRightBy(float dx) {
         x += dx;
+//        distance.x += dx;
     }
 
     public void moveUpBy(float dy){
         y -= dy;
+//        distance.y -= dy;
     }
 
     public void moveDownBy(float dy) {
         y += dy;
+//        distance.y += dy;
     }
 
     public boolean isMoving(){
@@ -306,10 +311,10 @@ public class MovingImage extends Rectangle {
     public float getAy(){
         return acceleration.y;
     }
-
-    public Point distance(){
-        return new Point(distance);
-    }
+//
+//    public Point distance(){
+//        return new Point(distance);
+//    }
 }
 
 
