@@ -123,9 +123,16 @@ public class World {
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
+        //System.out.println(player);
+
         //Represent right, left, up and down.
         Pair result[] = new  Pair[4];
         Pair temp1;
+
+        System.out.println(offset);
+
+        player.x += abs(offset.x);
+        player.y += abs(offset.y);
 
         //Update elements.
         for(int row = 0; row<elements.length; ++row) {
@@ -141,8 +148,9 @@ public class World {
                          }
 
                         if(moveRight) {
-                            temp1 = isRightCollision(row,col);
-                           if(!temp1.isEmpty()) result[Movement.RIGHT] = temp1;
+                             temp1 = isRightCollision(row,col);
+                             if(!temp1.isEmpty()) result[Movement.RIGHT] = temp1;
+                             System.out.println(temp1);
                         }
 
                         if(moveLeft ) {
@@ -156,12 +164,12 @@ public class World {
                         }
                     }
                     elements[row][col].update();
-
-                    //TODO: There is an issue with the map when updating it.
-                 //   updateMap(row,col);
                 }
             }
         }
+
+        player.x -= abs(offset.x);
+        player.y -= abs(offset.y);
 
         updatePlayer(result);
         updateTiles(result);
@@ -177,23 +185,23 @@ public class World {
             player.setFacingPosition(Movement.LEFT);
 
         //Check if player is moving to the right
-        if(moveRight) {
+        boolean boundary = (player.x + player.getXOffset()) >= (Display.width/2 - player.width);
+        if(moveRight && !boundary) {
             if(collision[Movement.RIGHT] == null) { //If there is no collision to the right move
                 player.moveRight();
             }
             else if(collision[Movement.RIGHT] != null){ //Otherwise do not move pass element
                 r = collision[Movement.RIGHT].row;
                 c = collision[Movement.RIGHT].col;
-                player.x = abs(elements[r][c].x-player.width-1);
+                player.x = abs(elements[r][c].x - player.width - 1);
             }
         }
-
 
         //Check if player is moving to the left
         if(moveLeft && !tileMoved){
 
             //Check if player is going off the screen
-            boolean boundary = (player.getX()-player.getXOffset()) < 0;
+            boundary = (player.getX()-player.getXOffset()) < 0;
 
             //If there is not collision and is not at boundary it can move
             //to the left.
@@ -204,7 +212,7 @@ public class World {
             else {
                 r = collision[Movement.LEFT].row;
                 c = collision[Movement.LEFT].col;
-                player.x = abs(elements[r][c].x + elements[r][c].width +1);
+                player.x = abs(elements[r][c].x + elements[r][c].width + 1);
             }
         }
 
@@ -227,13 +235,12 @@ public class World {
         }
 
         if(isGravity) {
-            if (collision[Movement.DOWN] == null ) {
+            if (collision[Movement.DOWN] == null) {
                 player.moveDown();
-            }
-            else {
+            } else {
                 r = collision[Movement.DOWN].row;
                 c = collision[Movement.DOWN].col;
-                player.y = abs(elements[r][c].y - player.height -1);
+                player.y = abs(elements[r][c].y - player.height - 1);
                 jumpOffset = 0;
                 moveUp = false;
             }
@@ -242,18 +249,34 @@ public class World {
 
     public void updateTiles(Pair collision[]){
 
-        //Map do not move when there is no boundary.
+        //Map do not move when there is no boundary && there is collision.
         boolean boundary = (player.getX()+player.getXOffset()) >= (Display.width/2 - player.width);
         if(!boundary)
             return;
 
         tileMoved = true;
 
-        if(moveRight && collision[Movement.RIGHT] == null)
-            offset.x -= player.getXOffset();
+
+        int r, c;
+        if(moveRight) {
+            if(collision[Movement.RIGHT] != null) {
+                r = collision[Movement.RIGHT].row;
+                c = collision[Movement.RIGHT].col;
+                offset.x =  (elements[r][c].x -  (Display.width/2)) *-1;
+            } else {
+                offset.x -= player.getXOffset();
+            }
+
+        }
 
         if(moveLeft) {
-            if(offset.x < 0) {
+
+            if(collision[Movement.LEFT] != null) {
+                r = collision[Movement.LEFT].row;
+                c = collision[Movement.LEFT].col;
+                offset.x = ((elements[r][c].x -  Display.width/2) + (elements[r][c].width + player.width) + 2) * -1;
+            }
+            else  if(offset.x < 0) {
                 offset.x += player.getXOffset();
             }
             else {
@@ -261,10 +284,7 @@ public class World {
                 tileMoved = false;
             }
         }
-
-        System.out.println(offset.x);
     }
-
 
     //MARK: Rendering
     //--------------------------------------------------------------------------------------------------------------------------//
@@ -273,26 +293,17 @@ public class World {
         int r = getStartingRow();
         int c = getStartingCol();
 
-        boolean boundary = (player.getX() + player.getXOffset()) >= (Display.width/2 - player.width);
-        if(boundary) {
-            int x =  (Display.width/2 - player.width);
-            player.draw(g, x,player.y);
-        }
-        else {
-            player.draw(g);
-        }
-
+        player.draw(g);
         for(int i = r;  getRow(i) < Display.height; i++){
             for(int j = c; getCol(j) < Display.width; j++){
                 if (!isEmpty(i,j)) {
-
-                    if(!isPlayer(i,j))
+                    if(!isPlayer(i,j)) {
                         elements[i][j].draw(g,offset);
+                    }
                 }
             }
         }
     }
-
 
     //MARK: Collision
     //--------------------------------------------------------------------------------------------------------------------------//
@@ -328,27 +339,6 @@ public class World {
         else
             return new Pair();
     }
-
-     boolean isCollision(int row, int col, float xOffset, float yOffset){
-       // return exist(row,col) && player.intersects(elements[row][col]);
-
-        int px = player.x;
-        int py = player.y;
-        int ph = player.height;
-        int pw = player.width;
-
-        int ex = elements[row][col].x;
-        int ey = elements[row][col].y;
-        int eh = elements[row][col].height;
-        int ew = elements[row][col].width;
-
-        return exist(row,col) && (px  + xOffset       < ex + ew)   &&
-                                 (px  + pw + xOffset  > ex)        &&
-                                 (py  + yOffset      < ey + eh)    &&
-                                 (py  + ph + yOffset  > ey     );
-     }
-
-
 
     //
     public boolean isLeftSide(int row, int col) {
@@ -405,7 +395,6 @@ public class World {
         return pConner1 || pConner2 || eConner1 || eConner2;
     }
 
-
     public Point leftTopConner(int row, int col, float xOffset, float yOffset) {
 
         int x =(int) (elements[row][col].x + xOffset);
@@ -446,7 +435,6 @@ public class World {
         return conner;
     }
 
-
     public Point leftBottomConner(MovingImage sprite, float xOffset, float yOffset) {
         Point conner = new Point();
         conner.x = (int) (sprite.x + xOffset);
@@ -472,47 +460,6 @@ public class World {
 
         return conner;
     }
-
-
-
-    //MARK: Type Alia for elements[row][col]
-    private boolean moveLeft(int row,int col){
-
-        int c = getPlayerCol();
-        int r = getPlayerRow();
-
-        if(player.isMovingRight() &&  isEmpty(r,c+1) ) {
-            elements[row][col].x -= player.getVxi();
-            return true;
-        }
-        else if(player.isMovingLeft()) {
-            player.leftBoundary = Display.width / 2 + player.width;
-            return true;
-        } else {
-            //TODO: When moving up and down player position for r is not changing.
-            System.out.println(r);
-            System.out.println(elements[r][c+1]);
-        }
-
-        return false;
-    }
-
-    public boolean moveRight(int row, int col) {
-
-        int c = getPlayerCol();
-        int r = getPlayerRow();
-
-        if(mapOriginal()) {
-            player.leftBoundary = 0;
-            return true;
-        }
-        else if(isEmpty(r,c-1)) {
-            elements[row][col].x += player.getVxi();
-            return true;
-        }
-        return false;
-    }
-
 
     //MARK: File Parsing
     //--------------------------------------------------------------------------------------------------------------------------//
