@@ -177,51 +177,68 @@ public class World {
 
     private void updatePlayer(Pair collision[]) {
 
-        int r, c;
+       updateMoveRight(collision[Movement.RIGHT]);
+
+       updateMoveLeft(collision[Movement.LEFT]);
+
+       if(collision[Movement.DOWN] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
+            startJump = true;
+
+       updateMoveUp(collision[Movement.UP]);
+
+       updateMoveDown(collision[Movement.DOWN]);
+    }
+
+    private void updateMoveRight(Pair collision){
 
         if(moveRight)
             player.setFacingPosition(Movement.RIGHT);
-        else if(moveLeft)
-            player.setFacingPosition(Movement.LEFT);
 
         //Check if player is moving to the right
         boolean boundary = (player.x + player.getXOffset()) >= (Display.width/2 - player.width);
+
         if(moveRight && !boundary) {
-            if(collision[Movement.RIGHT] == null) { //If there is no collision to the right move
+
+            if(collision == null) { //If there is no collision to the right move
                 player.moveRight();
             }
-            else if(collision[Movement.RIGHT] != null){ //Otherwise do not move pass element
-                r = collision[Movement.RIGHT].row;
-                c = collision[Movement.RIGHT].col;
+            else if(collision != null){ //Otherwise do not move pass element
+                int  r = collision.row;
+                int  c = collision.col;
                 player.x = abs(elements[r][c].x - player.width - 1);
             }
         }
+    }
+
+    private void updateMoveLeft(Pair collision){
+
+        if(moveLeft)
+            player.setFacingPosition(Movement.LEFT);
 
         //Check if player is moving to the left
         if(moveLeft && !tileMoved){
 
             //Check if player is going off the screen
-            boundary = (player.getX()-player.getXOffset()) < 0;
+          boolean  boundary = (player.getX()-player.getXOffset()) < 0;
 
             //If there is not collision and is not at boundary it can move
             //to the left.
-            if(collision[Movement.LEFT] == null && !boundary)
+            if(collision == null && !boundary)
                 player.moveLeft();
             else if(boundary)
                 player.x = 0;
             else {
-                r = collision[Movement.LEFT].row;
-                c = collision[Movement.LEFT].col;
+                int r = collision.row;
+                int c = collision.col;
                 player.x = abs(elements[r][c].x + elements[r][c].width + 1);
             }
         }
+    }
 
-        if(collision[Movement.DOWN] != null && moveUp) //If is on tile and want to jump, jump can start. Ps. Cannot jump on air.
-            startJump = true;
-
+    private void updateMoveUp(Pair collision){
         if(startJump){
 
-            if(jumpOffset <= jumpHeight && collision[Movement.UP] == null) {
+            if(jumpOffset <= jumpHeight && collision == null) {
 
                 player.moveUp();
                 jumpOffset += player.getVyi() + player.getAy();
@@ -233,19 +250,24 @@ public class World {
                 moveUp = false;
             }
         }
+    }
 
+    private void updateMoveDown(Pair collision){
         if(isGravity) {
-            if (collision[Movement.DOWN] == null) {
+            if (collision == null) {
                 player.moveDown();
             } else {
-                r = collision[Movement.DOWN].row;
-                c = collision[Movement.DOWN].col;
+                int r = collision.row;
+                int c = collision.col;
                 player.y = abs(elements[r][c].y - player.height - 1);
                 jumpOffset = 0;
                 moveUp = false;
             }
         }
     }
+
+
+
 
     public void updateTiles(Pair collision[]){
 
