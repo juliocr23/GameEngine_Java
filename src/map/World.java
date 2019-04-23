@@ -22,9 +22,9 @@ import static java.lang.StrictMath.abs;
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
  *
- *Add: Movement to map when moving to the left and is on boundary.
- * Notified Moving Image whether it has been move to the left, right, down or up so that it can use proper image.
- * Only draw the the images that are on display. and shift as a window when on boundary.
+ *
+ * TODO: Map cannot get pass the size the of the array. when is at end player can move to the right of the screen.
+ *       Without going off of it.
  */
 
 public class World {
@@ -104,13 +104,8 @@ public class World {
        moveLeft  = Game.keyboard.keyDown(KeyEvent.VK_LEFT);
        moveRight = Game.keyboard.keyDown(KeyEvent.VK_RIGHT);
 
-
        if(!moveUp)
             moveUp = Game.keyboard.keyDownOnce(KeyEvent.VK_UP);
-
-
-
-      //moveDown  = Game.keyboard.keyDown(KeyEvent.VK_DOWN);
 
        player.movements[0] = moveLeft;
        player.movements[1] = moveRight;
@@ -194,20 +189,21 @@ public class World {
         if(moveRight)
             player.setFacingPosition(Movement.RIGHT);
 
-        //Check if player is moving to the right
-        boolean boundary = (player.x + player.getXOffset()) >= (Display.width/2 - player.width);
-
-        if(moveRight && !boundary) {
-
-            if(collision == null) { //If there is no collision to the right move
-                player.moveRight();
-            }
-            else if(collision != null){ //Otherwise do not move pass element
-                int  r = collision.row;
-                int  c = collision.col;
-                player.x = abs(elements[r][c].x - player.width - 1);
-            }
-        }
+        if(moveRight) {
+           if(isPlayerEndScreen()) {
+               player.x = Display.width - player.width - 2;
+           }
+           else if(isPlayerMidScreen() && !isEndOfMap()) {
+               player.x =  (Display.width/2 - player.width) -1;
+           }
+           else if(collision !=  null) {
+               int  r = collision.row;
+               int  c = collision.col;
+               player.x = abs(elements[r][c].x - player.width - 1);
+           } else {
+               player.moveRight();
+           }
+       }
     }
 
     private void updateMoveLeft(Pair collision){
@@ -215,22 +211,18 @@ public class World {
         if(moveLeft)
             player.setFacingPosition(Movement.LEFT);
 
-        //Check if player is moving to the left
-        if(moveLeft && !tileMoved){
+        if(moveLeft){
 
-            //Check if player is going off the screen
-          boolean  boundary = (player.getX()-player.getXOffset()) < 0;
-
-            //If there is not collision and is not at boundary it can move
-            //to the left.
-            if(collision == null && !boundary)
-                player.moveLeft();
-            else if(boundary)
-                player.x = 0;
-            else {
+            if(collision != null) {
                 int r = collision.row;
                 int c = collision.col;
                 player.x = abs(elements[r][c].x + elements[r][c].width + 1);
+            }
+            else if(isPlayerStartScreen()) {
+                player.x = 0;
+            }
+            else if(offset.x > 0) {
+                player.moveLeft();
             }
         }
     }
@@ -267,33 +259,30 @@ public class World {
     }
 
 
-
-
     public void updateTiles(Pair collision[]){
 
-        //Map do not move when there is no boundary && there is collision.
-        boolean boundary = (player.getX()+player.getXOffset()) >= (Display.width/2 - player.width);
-        if(!boundary)
+
+        if(!isPlayerMidScreen())
             return;
-
-        tileMoved = true;
-
 
         int r, c;
         if(moveRight) {
-            if(collision[Movement.RIGHT] != null) {
+            if(collision[Movement.RIGHT] != null) { //There is collision can't move
                 r = collision[Movement.RIGHT].row;
                 c = collision[Movement.RIGHT].col;
                 offset.x =  (elements[r][c].x -  (Display.width/2)) *-1;
-            } else {
+            }
+            else if(isEndOfMap()) {  //Is the end of the map can't move
+                offset.x  = (getMapWidth()- Display.width)* -1;
+            }
+            else { //There is no collision map can move
                 offset.x -= player.getXOffset();
             }
-
         }
 
         if(moveLeft) {
 
-            if(collision[Movement.LEFT] != null) {
+            if(collision[Movement.LEFT] != null) { //There is collision can't move
                 r = collision[Movement.LEFT].row;
                 c = collision[Movement.LEFT].col;
                 offset.x = ((elements[r][c].x -  Display.width/2) + (elements[r][c].width + player.width) + 2) * -1;
@@ -303,7 +292,6 @@ public class World {
             }
             else {
                 offset.x = 0;
-                tileMoved = false;
             }
         }
     }
@@ -362,7 +350,6 @@ public class World {
             return new Pair();
     }
 
-    //
     public boolean isLeftSide(int row, int col) {
 
         float xOffset = player.getVxi() + player.getAx();
@@ -375,7 +362,6 @@ public class World {
         return pConner1 || pConner2 || eConner1 || eConner2;
     }
 
-    //
     public boolean isRightSide(int row, int col) {
 
         float xOffset = player.getVxi() + player.getAx();
@@ -388,7 +374,6 @@ public class World {
         return conner1 || conner2 || eConner1 || eConner2;
     }
 
-    //
     public boolean isTopSide(int row, int col) {
 
         float yOffset = player.getVyi() +  player.getAy();
@@ -402,7 +387,6 @@ public class World {
         return pConner1 || pConner2 || eConner1 || eConner2;
     }
 
-    //
     public boolean isBottomSide(int row, int col) {
 
         float yOffset = player.getVyi() +  player.getAy();
@@ -531,7 +515,7 @@ public class World {
     }
 
 
-    //MARK: Functionality
+    //MARK: Method Loaders
     //--------------------------------------------------------------------------------------------------------------------------//
 
     /**
@@ -605,7 +589,7 @@ public class World {
         }
     }
 
-    //Map position
+    //Map methods
     //----------------------------------------------------------------------------------------------------------------//
 
     private int getStartingCol(){
@@ -630,6 +614,51 @@ public class World {
 
     private int getCol(int j){
         return (j*elementWidthAvg+offset.x);
+    }
+
+    private boolean isEndOfMap(){
+        int mapWidth = elements[0].length*elementWidthAvg;
+        int nowWidth =  (int)(abs(offset.x) + player.getXOffset() + Display.width);
+
+        return nowWidth >= mapWidth;
+    }
+
+    private int getMapWidth(){
+        return elements[0].length*elementWidthAvg;
+    }
+
+    //Player methods
+    //----------------------------------------------------------------------------------------------------------------//
+    private int getPlayerRow(){
+
+        //Player's height could be > elementHeightAvg
+        float hOffset = 0;
+        if(player.height > elementHeightAvg)
+            hOffset = player.height-elementHeightAvg;
+
+        return  Math.round((player.y+hOffset)/elementHeightAvg);
+    }
+
+    private int getPlayerCol(){
+
+        float wOffset = 0;
+        if(player.width > elementWidthAvg)
+            wOffset = player.width-elementWidthAvg;
+
+
+        return Math.round((player.x+wOffset)/elementWidthAvg);
+    }
+
+    private boolean isPlayerMidScreen(){
+        return (player.getX() + player.getXOffset()) >= (Display.width/2 - player.width);
+    }
+
+    private boolean isPlayerEndScreen(){
+       return  (player.x + player.getXOffset()) >= (Display.width - player.width);
+    }
+
+    private boolean isPlayerStartScreen(){
+       return  (player.getX()-player.getXOffset()) < 0;
     }
 
     //Helpers
@@ -698,20 +727,6 @@ public class World {
         return wOffset;
     }
 
-
-//    public int getNewCol(int row, int col){
-//
-//        Point d = elements[row][col].distance();
-//        float totalX =d.x+wOffset(row,col);
-//        return  (int)totalX/elementWidthAvg;
-//    }
-//    public int getNewRow(int row, int col){
-//
-//        Point d = elements[row][col].distance();
-//        float totalY = d.y + hOffset(row,col);
-//        return (int)totalY/elementHeightAvg;
-//    }
-
     public boolean isValid(int row, int col) {
         return row >= 0 && row < elements.length && col>= 0 && col <elements[0].length;
     }
@@ -735,26 +750,6 @@ public class World {
             }
         }
         return true;
-    }
-
-    public int getPlayerRow(){
-
-        //Player's height could be > elementHeightAvg
-        float hOffset = 0;
-        if(player.height > elementHeightAvg)
-            hOffset = player.height-elementHeightAvg;
-
-        return  Math.round((player.y+hOffset)/elementHeightAvg);
-    }
-
-    public int getPlayerCol(){
-
-        float wOffset = 0;
-        if(player.width > elementWidthAvg)
-            wOffset = player.width-elementWidthAvg;
-
-
-       return Math.round((player.x+wOffset)/elementWidthAvg);
     }
 
     //TODO: Testing methods
@@ -794,8 +789,7 @@ class Pair{
         this.row = other.row;
         this.col = other.col;
     }
-
-
+    
    public boolean isEmpty(){
         return row == -1 && col == -1;
     }
