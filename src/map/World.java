@@ -22,9 +22,6 @@ import static java.lang.StrictMath.abs;
  * Lower case letter: power up like coins, ...
  * other symbols: enemies
  *
- *
- * TODO: Map cannot get pass the size the of the array. when is at end player can move to the right of the screen.
- *       Without going off of it.
  */
 
 public class World {
@@ -35,7 +32,7 @@ public class World {
                                                         // allocated
 
     private static  ArrayList<String> mapCode;
-    private static  int count = 0;                      //Keeps a count on the maps
+    private static  int count = 0 ;                      //Keeps a count on the maps
     private static  String mapFiles;
     private static  Point offset;                    //The location of the map
 
@@ -118,13 +115,9 @@ public class World {
     //--------------------------------------------------------------------------------------------------------------------------//
     public void update(){
 
-        //System.out.println(player);
-
         //Represent right, left, up and down.
         Pair result[] = new  Pair[4];
         Pair temp1;
-
-        System.out.println(offset);
 
         player.x += abs(offset.x);
         player.y += abs(offset.y);
@@ -190,6 +183,7 @@ public class World {
             player.setFacingPosition(Movement.RIGHT);
 
         if(moveRight) {
+
            if(isPlayerEndScreen()) {
                player.x = Display.width - player.width - 2;
            }
@@ -200,7 +194,8 @@ public class World {
                int  r = collision.row;
                int  c = collision.col;
                player.x = abs(elements[r][c].x - player.width - 1);
-           } else {
+           }
+           else {
                player.moveRight();
            }
        }
@@ -213,7 +208,7 @@ public class World {
 
         if(moveLeft){
 
-            if(collision != null) {
+            if(collision != null && offset.x >= 0) {
                 int r = collision.row;
                 int c = collision.col;
                 player.x = abs(elements[r][c].x + elements[r][c].width + 1);
@@ -221,7 +216,7 @@ public class World {
             else if(isPlayerStartScreen()) {
                 player.x = 0;
             }
-            else if(offset.x > 0) {
+            else if(offset.x >= 0 || !isPlayerMidScreen()) {
                 player.moveLeft();
             }
         }
@@ -258,19 +253,20 @@ public class World {
         }
     }
 
-
     public void updateTiles(Pair collision[]){
 
-
-        if(!isPlayerMidScreen())
+        //Moving left issue
+        if(!isPlayerMidScreen() || isPlayerEndScreen()) {
             return;
+        }
 
         int r, c;
         if(moveRight) {
             if(collision[Movement.RIGHT] != null) { //There is collision can't move
                 r = collision[Movement.RIGHT].row;
                 c = collision[Movement.RIGHT].col;
-                offset.x =  (elements[r][c].x -  (Display.width/2)) *-1;
+                offset.x =  (elements[r][c].x  - player.x - player.width -1) *-1;
+                System.out.println(player.x);
             }
             else if(isEndOfMap()) {  //Is the end of the map can't move
                 offset.x  = (getMapWidth()- Display.width)* -1;
@@ -283,15 +279,18 @@ public class World {
         if(moveLeft) {
 
             if(collision[Movement.LEFT] != null) { //There is collision can't move
+
                 r = collision[Movement.LEFT].row;
                 c = collision[Movement.LEFT].col;
-                offset.x = ((elements[r][c].x -  Display.width/2) + (elements[r][c].width + player.width) + 2) * -1;
+
+                //Offset + player.x = real distance travel.
+                offset.x =  (elements[r][c].x + elements[r][c].width - player.x + 1) * -1;
             }
-            else  if(offset.x < 0) {
-                offset.x += player.getXOffset();
+            else if(isStartOfMap()) { // Is the start of the map.
+                offset.x = 0;
             }
             else {
-                offset.x = 0;
+                offset.x += player.getXOffset();
             }
         }
     }
@@ -616,6 +615,10 @@ public class World {
         return (j*elementWidthAvg+offset.x);
     }
 
+    private boolean isStartOfMap(){
+        return offset.x + player.getXOffset() >= 0;
+    }
+
     private boolean isEndOfMap(){
         int mapWidth = elements[0].length*elementWidthAvg;
         int nowWidth =  (int)(abs(offset.x) + player.getXOffset() + Display.width);
@@ -626,6 +629,7 @@ public class World {
     private int getMapWidth(){
         return elements[0].length*elementWidthAvg;
     }
+
 
     //Player methods
     //----------------------------------------------------------------------------------------------------------------//
@@ -650,7 +654,11 @@ public class World {
     }
 
     private boolean isPlayerMidScreen(){
-        return (player.getX() + player.getXOffset()) >= (Display.width/2 - player.width);
+        return (player.x + player.getXOffset()) >= (Display.width/2 - player.width) &&
+                (player.x + player.getXOffset()) <= Display.width/2;
+
+
+
     }
 
     private boolean isPlayerEndScreen(){
